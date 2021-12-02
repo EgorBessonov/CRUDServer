@@ -7,13 +7,6 @@ import (
 	"net/http"
 )
 
-type IHandler interface {
-	SaveUser(c echo.Context) error
-	GetUserByID(c echo.Context) error
-	DeleteUserByID(c echo.Context) error
-	UpdateUserById(c echo.Context) error
-}
-
 type Handler struct {
 	rps repository.IRepository
 }
@@ -24,7 +17,21 @@ func (h Handler) SaveUser(c echo.Context) error {
 }
 
 func (h Handler) GetUserByID(c echo.Context) error {
-	return nil
+	userID := c.QueryParam("id")
+	user, err := h.rps.ReadUser(userID)
+	if err != nil {
+		return c.String(http.StatusInternalServerError, fmt.Sprintln("Error while reading."))
+	}
+	//return c.String(http.StatusOK, fmt.Sprintf("userName: %v\nuserAge: %v\nisAdult: %v\n", user.UserName, user.UserAge, user.IsAdult))
+	return c.JSONBlob(
+		http.StatusOK,
+		[]byte(
+			fmt.Sprintf(`{
+					"userName" : %v,
+					"userAge" : %v,
+					"isAdult" : %v}`, user.UserName, user.UserAge, userID),
+		),
+	)
 }
 
 func (h Handler) DeleteUserByID(c echo.Context) error {
@@ -37,6 +44,7 @@ func (h Handler) DeleteUserByID(c echo.Context) error {
 }
 
 func (h Handler) UpdateUserById(c echo.Context) error {
+
 	return nil
 }
 

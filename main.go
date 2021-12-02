@@ -3,22 +3,17 @@ package main
 import (
 	"CRUDServer/handler"
 	"github.com/labstack/echo/v4"
-	"log"
-	"net/http"
 )
 
 func main() {
 
 	e := echo.New()
-	h := handler.NewHandler("mongo")
+	h := handler.NewHandler("postgres")
+
 	e.POST("users/", h.SaveUser)
+	e.PUT("users/", h.UpdateUserById)
+	e.DELETE("users/", h.DeleteUserByID)
+	e.GET("users/", h.GetUserByID)
 
-	s := http.Server{
-		Addr:    ":8080",
-		Handler: e,
-	}
-
-	if err := s.ListenAndServe(); err != http.ErrServerClosed {
-		log.Fatal(err)
-	}
+	e.Logger.Fatal(e.Start(":8080"))
 }

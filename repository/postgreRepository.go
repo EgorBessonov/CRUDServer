@@ -1,7 +1,5 @@
 package repository
 
-import "github.com/google/uuid"
-
 
 type PostgreRepository struct{}
 
@@ -10,15 +8,15 @@ func(rps PostgreRepository) CreateUser(u User)error{
 	return nil
 }
 
-func(rps PostgreRepository) ReadUser(){
-
+func(rps PostgreRepository) ReadUser(u string) (*User, error){
+	return &User{}, nil
 }
 
 func(rps PostgreRepository) UpdateUser(u User)error{
 	return nil
 }
 
-func(rps PostgreRepository) DeleteUser(userID uuid.UUID)error{
+func(rps PostgreRepository) DeleteUser(userID string)error{
 	return nil
 }
 

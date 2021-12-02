@@ -2,12 +2,11 @@ package repository
 
 import (
 	"context"
-	"time"
-
 	log "github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"time"
 )
 
 type MongoRepository struct{}
@@ -19,7 +18,7 @@ func (rps MongoRepository) CreateUser(u User) error {
 
 	if err != nil {
 		log.WithFields(log.Fields{
-			"method": "Createuser()",
+			"method": "CreateUser()",
 			"status": "Failed connection to mongoDB.",
 			"error":  err,
 		}).Info("Mongo repository info.")
@@ -27,11 +26,12 @@ func (rps MongoRepository) CreateUser(u User) error {
 	} else {
 		log.WithFields(log.Fields{
 			"time":   time.Now(),
-			"method": "Createuser()",
+			"method": "CreateUser()",
 			"status": "Successfully connected to mongoDB.",
 		}).Info("Mongo repository info.")
 	}
-	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
 	col := client.Database("crudserver").Collection("users")
 
 	result, err := col.InsertOne(ctx, bson.D{
@@ -42,22 +42,22 @@ func (rps MongoRepository) CreateUser(u User) error {
 	})
 	if err != nil {
 		log.WithFields(log.Fields{
-			"method": "Createuser()",
+			"method": "CreateUser()",
 			"status": "Failed while inserting.",
 			"error":  err,
 		}).Info("Mongo repository info.")
 		return err
 	} else {
 		log.WithFields(log.Fields{
-			"method":     "Createuser()",
-			"status":     "Succesfully inserted.",
+			"method":     "CreateUser()",
+			"status":     "Successfully inserted.",
 			"insertedID": result.InsertedID,
 		}).Info("Mongo repository info.")
 	}
 	return nil
 }
 
-func (rps MongoRepository) ReadUser(userID string) (*User, error) {
+func (rps MongoRepository) ReadUser(userID string) (User, error) {
 	clientOptions := options.Client().ApplyURI("mongodb://localhost:27017")
 	client, err := mongo.Connect(context.TODO(), clientOptions)
 
@@ -67,7 +67,7 @@ func (rps MongoRepository) ReadUser(userID string) (*User, error) {
 			"status": "Failed connection to mongoDB.",
 			"error":  err,
 		}).Info("Mongo repository info.")
-		return &User{}, err
+		return User{}, err
 	} else {
 		log.WithFields(log.Fields{
 			"time":   time.Now(),
@@ -75,25 +75,27 @@ func (rps MongoRepository) ReadUser(userID string) (*User, error) {
 			"status": "Successfully connected to mongoDB.",
 		}).Info("Mongo repository info.")
 	}
-	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
 	col := client.Database("crudserver").Collection("users")
 
-	var result User
-	err = col.FindOne(ctx, bson.D{{Key: "_id", Value: userID}}).Decode(&result)
+	var rUser User
+	err = col.FindOne(ctx, bson.D{{Key: "_id", Value: userID}}).Decode(&rUser)
 	if err != nil {
 		log.WithFields(log.Fields{
 			"method": "ReadUser()",
 			"status": "Failed while reading.",
 			"error":  err,
 		}).Info("Mongo repository info.")
-		return &User{}, err
+		return User{}, err
 	} else {
 		log.WithFields(log.Fields{
-			"method":     "ReadUser()",
-			"status":     "Succesfully read.",
+			"method": "ReadUser()",
+			"status": "Successfully read.",
+			"time":   time.Now(),
 		}).Info("Mongo repository info.")
 	}
-	return &result, nil
+	return rUser, nil
 }
 
 func (rps MongoRepository) UpdateUser(u User) error {
@@ -115,7 +117,8 @@ func (rps MongoRepository) UpdateUser(u User) error {
 			"status": "Successfully connected to mongoDB.",
 		}).Info("Mongo repository info.")
 	}
-	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
 	col := client.Database("crudserver").Collection("users")
 
 	result, err := col.UpdateOne(ctx, bson.D{{Key: "_id", Value: u.UserId}}, bson.D{
@@ -123,17 +126,17 @@ func (rps MongoRepository) UpdateUser(u User) error {
 		{Key: "userAge", Value: u.UserAge},
 		{Key: "isAdult", Value: u.IsAdult},
 	})
-	if err != nil{
+	if err != nil {
 		log.WithFields(log.Fields{
 			"method": "UpdateUser()",
 			"status": "Failed while updating.",
 			"error":  err,
 		}).Info("Mongo repository info.")
 		return err
-	}else{
+	} else {
 		log.WithFields(log.Fields{
-			"method":     "UpdateUser()",
-			"status":     "Succesfully updated.",
+			"method":        "UpdateUser()",
+			"status":        "Successfully updated.",
 			"upsertedCount": result.UpsertedCount,
 		}).Info("Mongo repository info.")
 	}
@@ -159,21 +162,22 @@ func (rps MongoRepository) DeleteUser(userID string) error {
 			"status": "Successfully connected to mongoDB.",
 		}).Info("Mongo repository info.")
 	}
-	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
 	col := client.Database("crudserver").Collection("users")
 
 	result, err := col.DeleteOne(ctx, bson.D{{Key: "_id", Value: userID}})
-	if err != nil{
+	if err != nil {
 		log.WithFields(log.Fields{
 			"method": "DeleteUser()",
 			"status": "Failed while deleting.",
 			"error":  err,
 		}).Info("Mongo repository info.")
 		return err
-	}else{
+	} else {
 		log.WithFields(log.Fields{
-			"method":     "DeleteUser()",
-			"status":     "Succesfully deleted.",
+			"method":       "DeleteUser()",
+			"status":       "Successfully deleted.",
 			"deletedCount": result.DeletedCount,
 		}).Info("Mongo repository info.")
 	}

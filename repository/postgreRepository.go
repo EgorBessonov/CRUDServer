@@ -9,6 +9,8 @@ import (
 
 type PostgresRepository struct{}
 
+//CreateUser save User object into postgresql database
+// and returns creation status 
 func (rps PostgresRepository) CreateUser(u User) error {
 	conn, err := pgx.Connect(context.Background(), "postgresql://postgres:passwd@localhost:5614/crudserverdb")
 	if err != nil {
@@ -46,6 +48,8 @@ func (rps PostgresRepository) CreateUser(u User) error {
 	return nil
 }
 
+//ReadUser return User object from postgresql database
+//with selection by UserId
 func (rps PostgresRepository) ReadUser(u string) (User, error) {
 	conn, err := pgx.Connect(context.Background(), "postgresql://postgres:passwd@localhost:5614/crudserverdb")
 	if err != nil {
@@ -82,6 +86,9 @@ func (rps PostgresRepository) ReadUser(u string) (User, error) {
 	return user, nil
 }
 
+//UpdateUser update User object from postgresql database
+//with selection by UserId
+//and returns updating status
 func (rps PostgresRepository) UpdateUser(u User) error {
 	conn, err := pgx.Connect(context.Background(), "postgresql://postgres:passwd@localhost:5614/crudserverdb")
 	if err != nil {
@@ -120,6 +127,9 @@ func (rps PostgresRepository) UpdateUser(u User) error {
 	return nil
 }
 
+//DeleteUser delete User object from postgresql database
+//with selection by UserId
+//and returns deletion status
 func (rps PostgresRepository) DeleteUser(userID string) error {
 	conn, err := pgx.Connect(context.Background(), "postgresql://postgres:passwd@localhost:5614/crudserverdb")
 	if err != nil {
@@ -156,10 +166,12 @@ func (rps PostgresRepository) DeleteUser(userID string) error {
 	return nil
 }
 
+
+//AddImage function
 func (rps PostgresRepository) AddImage() {
 
 }
-
+// GetImage function
 func (rps PostgresRepository) GetImage() {
 
 }

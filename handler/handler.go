@@ -3,19 +3,40 @@ package handler
 import (
 	"CRUDServer/repository"
 	"fmt"
-	"github.com/labstack/echo/v4"
 	"net/http"
+	"strconv"
+
+	"github.com/google/uuid"
+	"github.com/labstack/echo/v4"
 )
 
 type Handler struct {
 	rps repository.IRepository
 }
 
+//SaveUser is echo handler which return creation status and UserId
 func (h Handler) SaveUser(c echo.Context) error {
-
-	return nil
+	userAge, err := strconv.Atoi(c.Param("userAge"))
+	if err != nil{
+		return c.String(http.StatusInternalServerError, fmt.Sprintln("Error while converting data."))
+	}
+	isAdult, err := strconv.ParseBool(c.Param("isAdult"))
+	if err != nil{
+		return c.String(http.StatusInternalServerError, fmt.Sprintln("Error while converting data."))
+	}
+	user := repository.User{
+		UserId: uuid.New().Version().String(),
+		UserName: c.Param("userName"),
+		UserAge: userAge,
+		IsAdult: isAdult,
+	}
+	err = h.rps.CreateUser(user)
+	if err != nil{
+		return c.String(http.StatusInternalServerError, fmt.Sprintln("Error while adding User to db."))
+	}
+	return c.String(http.StatusOK, fmt.Sprintln("Successfully added."))
 }
-
+// GetUserByID is echo handler which returns json sturcture of User object
 func (h Handler) GetUserByID(c echo.Context) error {
 	userID := c.QueryParam("id")
 	user, err := h.rps.ReadUser(userID)
@@ -34,6 +55,7 @@ func (h Handler) GetUserByID(c echo.Context) error {
 	)
 }
 
+//DeleteUserByID is echo handler which return deletion status
 func (h Handler) DeleteUserByID(c echo.Context) error {
 	userID := c.QueryParam("id")
 	err := h.rps.DeleteUser(userID)
@@ -43,11 +65,14 @@ func (h Handler) DeleteUserByID(c echo.Context) error {
 	return c.String(http.StatusOK, fmt.Sprintln("Successfully deleted."))
 }
 
+//UpdateUserByID is echo handler which return updation status
 func (h Handler) UpdateUserById(c echo.Context) error {
 
 	return nil
 }
 
+//NewHandler function create handler for working with
+//postgressql or mongo database
 func NewHandler(rps string) *Handler {
 	switch rps {
 	case "mongo":

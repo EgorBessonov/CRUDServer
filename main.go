@@ -3,17 +3,15 @@ package main
 import (
 	"CRUDServer/handler"
 	"fmt"
-
 	"github.com/caarlos0/env"
 	"github.com/labstack/echo/v4"
 )
 
 type config struct {
-	CurrentDB string `env:"CURRENTDB, /.env" envDefault:"postgres"`
+	CurrentDB string `env:"CURRENTDB" envDefault:"postgres"`
 }
 
 func main() {
-
 	cfg := config{}
 	if err := env.Parse(&cfg); err != nil {
 		fmt.Println(err)
@@ -24,7 +22,7 @@ func main() {
 	fmt.Println(cfg.CurrentDB)
 
 	e.POST("users/", h.SaveUser)
-	e.PUT("users/", h.UpdateUserById)
+	e.PUT("users/", h.UpdateUserByID)
 	e.DELETE("users/", h.DeleteUserByID)
 	e.GET("users/", h.GetUserByID)
 

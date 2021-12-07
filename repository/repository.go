@@ -1,19 +1,20 @@
+// Package repository replies for database access
 package repository
 
-
-type User struct{
-	UserId string
-	UserName string	`json:"userName" bson:"userName"`
-	UserAge int `json:"userAge" bson:"userAge"`
-	IsAdult bool `json:"isAdult" bson:"isAdult"`
+// User type represent user structure in database
+type User struct {
+	UserID   string
+	UserName string `json:"userName" bson:"userName"`
+	UserAge  int    `json:"userAge" bson:"userAge"`
+	IsAdult  bool   `json:"isAdult" bson:"isAdult"`
 }
 
-
-type IRepository interface{
-	CreateUser(u User)error
+// IRepository interface represent repository behavior
+type IRepository interface {
+	CreateUser(u User) error
 	ReadUser(u string) (User, error)
-	UpdateUser(u User)error
-	DeleteUser(userID string)error
+	UpdateUser(u User) error
+	DeleteUser(userID string) error
 	AddImage()
 	GetImage()
 }

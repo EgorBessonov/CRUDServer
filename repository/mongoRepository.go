@@ -2,6 +2,8 @@ package repository
 
 import (
 	"context"
+	"fmt"
+	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -36,7 +38,7 @@ func (rps MongoRepository) CreateUser(u User) error {
 	col := client.Database("crudserver").Collection("users")
 
 	result, err := col.InsertOne(ctx, bson.D{
-		{Key: "_id", Value: u.UserID},
+		{Key: "_id", Value: uuid.New().String()},
 		{Key: "userName", Value: u.UserName},
 		{Key: "userAge", Value: u.UserAge},
 		{Key: "isAdult", Value: u.IsAdult},
@@ -122,7 +124,7 @@ func (rps MongoRepository) UpdateUser(u User) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	col := client.Database("crudserver").Collection("users")
-
+	fmt.Println(u.UserID)
 	result, err := col.UpdateOne(ctx, bson.D{{Key: "_id", Value: u.UserID}}, bson.D{
 		{Key: "userName", Value: u.UserName},
 		{Key: "userAge", Value: u.UserAge},

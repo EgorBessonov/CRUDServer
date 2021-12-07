@@ -18,17 +18,18 @@ type Handler struct {
 
 // SaveUser is echo handler which return creation status and UserId
 func (h Handler) SaveUser(c echo.Context) error {
-	userAge, err := strconv.Atoi(c.Param("userAge"))
+	userAge, err := strconv.Atoi(c.QueryParam("userAge"))
 	if err != nil {
 		return c.String(http.StatusInternalServerError, fmt.Sprintln("Error while converting data."))
 	}
-	isAdult, err := strconv.ParseBool(c.Param("isAdult"))
+
+	isAdult, err := strconv.ParseBool(c.QueryParam("isAdult"))
 	if err != nil {
 		return c.String(http.StatusInternalServerError, fmt.Sprintln("Error while converting data."))
 	}
 	user := repository.User{
 		UserID:   uuid.New().Version().String(),
-		UserName: c.Param("userName"),
+		UserName: c.QueryParam("userName"),
 		UserAge:  userAge,
 		IsAdult:  isAdult,
 	}
@@ -41,7 +42,7 @@ func (h Handler) SaveUser(c echo.Context) error {
 
 // GetUserByID is echo handler which returns json structure of User object
 func (h Handler) GetUserByID(c echo.Context) error {
-	userID := c.QueryParam("id")
+	userID := c.QueryParam("userId")
 	user, err := h.rps.ReadUser(userID)
 	if err != nil {
 		return c.String(http.StatusInternalServerError, fmt.Sprintln("Error while reading."))
@@ -59,7 +60,7 @@ func (h Handler) GetUserByID(c echo.Context) error {
 
 // DeleteUserByID is echo handler which return deletion status
 func (h Handler) DeleteUserByID(c echo.Context) error {
-	userID := c.QueryParam("id")
+	userID := c.QueryParam("userId")
 	err := h.rps.DeleteUser(userID)
 	if err != nil {
 		return c.String(http.StatusInternalServerError, fmt.Sprintln("Error while deleting."))
@@ -69,7 +70,27 @@ func (h Handler) DeleteUserByID(c echo.Context) error {
 
 // UpdateUserByID is echo handler which return updating status
 func (h Handler) UpdateUserByID(c echo.Context) error {
-	return nil
+	userAge, err := strconv.Atoi(c.QueryParam("userAge"))
+	if err != nil {
+		return c.String(http.StatusInternalServerError, fmt.Sprintln("Error while converting data."))
+	}
+
+	isAdult, err := strconv.ParseBool(c.QueryParam("isAdult"))
+	if err != nil {
+		return c.String(http.StatusInternalServerError, fmt.Sprintln("Error while converting data."))
+	}
+
+	user := repository.User{
+		UserID:   c.QueryParam("userId"),
+		UserName: c.QueryParam("userName"),
+		UserAge:  userAge,
+		IsAdult:  isAdult,
+	}
+	err = h.rps.UpdateUser(user)
+	if err != nil {
+		return c.String(http.StatusInternalServerError, fmt.Sprintln("Error while updating user"))
+	}
+	return c.String(http.StatusOK, fmt.Sprintln("Successfully updated."))
 }
 
 // NewHandler function create handler for working with

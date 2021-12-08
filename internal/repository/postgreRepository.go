@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"fmt"
 	"github.com/jackc/pgconn"
 	"github.com/jackc/pgx/v4"
 	log "github.com/sirupsen/logrus"
@@ -118,7 +119,7 @@ func (rps PostgresRepository) DeleteUser(userID string) error {
 			}).Info("Postgresql repository info")
 		}
 	}()
-
+	fmt.Println(userID)
 	result, err := conn.Exec(context.Background(), "delete from users where userId=$1", userID)
 	if err != nil {
 		logOperationError(err, "DeleteUser()")

@@ -1,14 +1,20 @@
 package main
 
 import (
-	"CRUDServer/handler"
+	"CRUDServer/internal/handler"
 	"fmt"
 	"github.com/caarlos0/env"
 	"github.com/labstack/echo/v4"
 )
 
 type config struct {
-	CurrentDB string `env:"CURRENTDB" envDefault:"postgres"`
+	CurrentDB     string `env:"CURRENTDB" envDefault:"/tmp/app"`
+	PostgresdbUrl string `env:"POSTGRESDB_URL"`
+	MongodbUrl    string `env:"MONGODB_URL"`
+}
+
+func init() {
+
 }
 
 func main() {
@@ -27,4 +33,12 @@ func main() {
 	e.GET("users/", h.GetUserByID)
 
 	e.Logger.Fatal(e.Start(":8081"))
+}
+
+func postgresdbConnection() {
+
+}
+
+func mongodbConnection() {
+
 }

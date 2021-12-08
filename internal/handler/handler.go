@@ -61,6 +61,7 @@ func (h Handler) GetUserByID(c echo.Context) error {
 // DeleteUserByID is echo handler which return deletion status
 func (h Handler) DeleteUserByID(c echo.Context) error {
 	userID := c.QueryParam("userId")
+	fmt.Println(userID)
 	err := h.rps.DeleteUser(userID)
 	if err != nil {
 		return c.String(http.StatusInternalServerError, fmt.Sprintln("Error while deleting."))

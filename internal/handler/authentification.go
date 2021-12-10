@@ -1,11 +1,7 @@
 package handler
 
-import (
-	"github.com/golang-jwt/jwt"
-)
-
-type jwtCustomClaims struct {
-	Name  string `json:"name"`
-	Admin string `json:"admin"`
-	jwt.StandardClaims
+// LoginForm struct represents user login information
+type LoginForm struct {
+	email    string
+	password string
 }

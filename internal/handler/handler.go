@@ -2,13 +2,17 @@
 package handler
 
 import (
-	"CRUDServer/repository"
+	"CRUDServer/internal/repository"
+	"context"
 	"fmt"
+	"github.com/google/uuid"
+	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/labstack/echo/v4"
+	log "github.com/sirupsen/logrus"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"net/http"
 	"strconv"
-
-	"github.com/google/uuid"
-	"github.com/labstack/echo/v4"
 )
 
 // Handler type replies for handling echo server requests
@@ -16,7 +20,53 @@ type Handler struct {
 	rps repository.IRepository
 }
 
-// SaveUser is echo handler which return creation status and UserId
+// NewHandler function create handler for working with
+// postgres or mongo database and initialize connection with this db
+func NewHandler(cfg repository.Config) *Handler {
+	switch cfg.CurrentDB {
+	case "mongo":
+		client, err := mongo.Connect(context.Background(), options.Client().ApplyURI(cfg.MongodbUrl))
+		if err != nil {
+			log.WithFields(log.Fields{
+				"status": "Connection to mongo database failed.",
+				"err":    err,
+			}).Info("Mongo repository info")
+		} else {
+			log.WithFields(log.Fields{
+				"status": "Successfully connected to mongo database.",
+			}).Info("Mongo repository info.")
+		}
+		h := Handler{rps: repository.MongoRepository{
+			DBconn: client,
+		}}
+		return &h
+	case "postgres":
+		conn, err := pgxpool.Connect(context.Background(), cfg.PostgresdbUrl)
+		if err != nil {
+			log.WithFields(log.Fields{
+				"status": "Connection to postgres database failed.",
+				"err":    err,
+			}).Info("Postgres repository info.")
+		} else {
+			log.WithFields(log.Fields{
+				"status": "Successfully connected to postgres database.",
+			}).Info("Postgres repository info.")
+		}
+		h := Handler{repository.PostgresRepository{
+			DBconn: conn,
+		}}
+		defer func() {
+			conn.Close()
+			log.WithFields(log.Fields{
+				"status": "Connection to postgres database was successfully closed.",
+			}).Info("Postgres repository info.")
+		}()
+		return &h
+	}
+	return nil
+}
+
+// SaveUser is echo handler(POST) which return creation status and UserId
 func (h Handler) SaveUser(c echo.Context) error {
 	userAge, err := strconv.Atoi(c.QueryParam("userAge"))
 	if err != nil {
@@ -40,7 +90,7 @@ func (h Handler) SaveUser(c echo.Context) error {
 	return c.String(http.StatusOK, fmt.Sprintln("Successfully added."))
 }
 
-// GetUserByID is echo handler which returns json structure of User object
+// GetUserByID is echo handler(GET) which returns json structure of User object
 func (h Handler) GetUserByID(c echo.Context) error {
 	userID := c.QueryParam("userId")
 	user, err := h.rps.ReadUser(userID)
@@ -58,7 +108,7 @@ func (h Handler) GetUserByID(c echo.Context) error {
 	)
 }
 
-// DeleteUserByID is echo handler which return deletion status
+// DeleteUserByID is echo handler(DELETE) which return deletion status
 func (h Handler) DeleteUserByID(c echo.Context) error {
 	userID := c.QueryParam("userId")
 	fmt.Println(userID)
@@ -69,7 +119,7 @@ func (h Handler) DeleteUserByID(c echo.Context) error {
 	return c.String(http.StatusOK, fmt.Sprintln("Successfully deleted."))
 }
 
-// UpdateUserByID is echo handler which return updating status
+// UpdateUserByID is echo handler(PUT) which return updating status
 func (h Handler) UpdateUserByID(c echo.Context) error {
 	userAge, err := strconv.Atoi(c.QueryParam("userAge"))
 	if err != nil {
@@ -92,18 +142,4 @@ func (h Handler) UpdateUserByID(c echo.Context) error {
 		return c.String(http.StatusInternalServerError, fmt.Sprintln("Error while updating user"))
 	}
 	return c.String(http.StatusOK, fmt.Sprintln("Successfully updated."))
-}
-
-// NewHandler function create handler for working with
-// postgres or mongo database
-func NewHandler(rps string) *Handler {
-	switch rps {
-	case "mongo":
-		h := Handler{rps: new(repository.MongoRepository)}
-		return &h
-	case "postgres":
-		h := Handler{rps: new(repository.PostgresRepository)}
-		return &h
-	}
-	return nil
 }

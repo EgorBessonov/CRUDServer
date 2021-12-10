@@ -1,6 +1,13 @@
 // Package repository replies for database access
 package repository
 
+// Config type replies for connection to current database
+type Config struct {
+	CurrentDB     string `env:"CURRENTDB" envDefault:"postgres"`
+	PostgresdbUrl string `env:"POSTGRESDB_URL"`
+	MongodbUrl    string `env:"MONGODB_URL"`
+}
+
 // User type represent user structure in database
 type User struct {
 	UserID   string

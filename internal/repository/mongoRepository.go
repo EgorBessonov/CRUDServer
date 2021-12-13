@@ -105,8 +105,20 @@ func (rps MongoRepository) GetAuthUser(email string) (LoginForm, error) {
 
 // CreateAuthUser save authentication info about user into
 // postgres database
-func (rps MongoRepository) CreateAuthUser(LoginForm) error {
+func (rps MongoRepository) CreateAuthUser(lf LoginForm) error {
+	col := rps.DBconn.Database("crudserver").Collection("authusers")
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
 
+	_, err := col.InsertOne(ctx, bson.D{
+		{Key: "email", Value: lf.Email},
+		{Key: "password", Value: lf.Password},
+	})
+	if err != nil {
+		mongoOperationError(err, "CreateAuthUser()")
+		return err
+	}
+	mongoOperationSuccess("CreateAuthUser()")
 	return nil
 }
 

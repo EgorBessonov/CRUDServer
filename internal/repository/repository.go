@@ -11,7 +11,7 @@ type Config struct {
 // LoginForm struct represents user login information
 type LoginForm struct {
 	Email    string `json:"email" bson:"email"`
-	Password []byte `json:"password" bson:"password"`
+	Password string `json:"password" bson:"password"`
 }
 
 // User type represent user structure in database

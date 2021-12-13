@@ -1,11 +1,13 @@
 // Package repository replies for database access
 package repository
 
+import "CRUDServer/internal/handler"
+
 // Config type replies for connection to current database
 type Config struct {
 	CurrentDB     string `env:"CURRENTDB" envDefault:"postgres"`
-	PostgresdbUrl string `env:"POSTGRESDB_URL"`
-	MongodbUrl    string `env:"MONGODB_URL"`
+	PostgresdbURL string `env:"POSTGRESDB_URL"`
+	MongodbURL    string `env:"MONGODB_URL"`
 }
 
 // User type represent user structure in database
@@ -24,4 +26,6 @@ type IRepository interface {
 	DeleteUser(userID string) error
 	AddImage()
 	GetImage()
+	CreateAuthUser(handler.LoginForm) error
+	GetAuthUser()
 }

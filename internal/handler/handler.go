@@ -25,7 +25,7 @@ type Handler struct {
 func NewHandler(cfg repository.Config) *Handler {
 	switch cfg.CurrentDB {
 	case "mongo":
-		client, err := mongo.Connect(context.Background(), options.Client().ApplyURI(cfg.MongodbUrl))
+		client, err := mongo.Connect(context.Background(), options.Client().ApplyURI(cfg.MongodbURL))
 		if err != nil {
 			log.WithFields(log.Fields{
 				"status": "Connection to mongo database failed.",
@@ -41,7 +41,7 @@ func NewHandler(cfg repository.Config) *Handler {
 		}}
 		return &h
 	case "postgres":
-		conn, err := pgxpool.Connect(context.Background(), cfg.PostgresdbUrl)
+		conn, err := pgxpool.Connect(context.Background(), cfg.PostgresdbURL)
 		if err != nil {
 			log.WithFields(log.Fields{
 				"status": "Connection to postgres database failed.",
@@ -143,3 +143,15 @@ func (h Handler) UpdateUserByID(c echo.Context) error {
 	}
 	return c.String(http.StatusOK, fmt.Sprintln("Successfully updated."))
 }
+
+// AddImage is echo handler(POST) for saving user images
+func (h Handler) AddImage(c echo.Context) error{
+	return nil
+}
+
+
+// GetImageByUserID is echo handler(GET) for getting user images
+func (h Handler) GetImageByUserID(c echo.Context) error{
+	return nil
+}
+

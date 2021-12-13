@@ -1,7 +1,9 @@
 package repository
 
 import (
+	"CRUDServer/internal/handler"
 	"context"
+
 	"github.com/jackc/pgconn"
 	"github.com/jackc/pgx/v4/pgxpool"
 	log "github.com/sirupsen/logrus"
@@ -73,6 +75,19 @@ func (rps PostgresRepository) AddImage() {
 // GetImage function
 func (rps PostgresRepository) GetImage() {
 
+}
+
+// CreateAuthUser save authentification info about user into
+// postgres database
+func (rps PostgresRepository) CreateAuthUser(lf handler.LoginForm)error{
+	
+	return nil
+}
+
+// GetAuthUser return authentification info about user into
+// postgres database
+func (rps PostgresRepository) GetAuthUser(){
+	
 }
 
 func logOperationError(err error, method string) {

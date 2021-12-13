@@ -1,12 +1,13 @@
 package repository
 
 import (
+	"CRUDServer/internal/handler"
 	"context"
+	"time"
 	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
-	"time"
 )
 
 // MongoRepository type replies for accessing to mongo database
@@ -127,4 +128,17 @@ func (rps MongoRepository) AddImage() {
 // GetImage function
 func (rps MongoRepository) GetImage() {
 	// TODO
+}
+
+// GetAuthUser return authentification info about user into
+// postgres database
+func (rps MongoRepository) GetAuthUser(email string) error{
+	return nil
+}
+
+// CreateAuthUser save authentification info about user into
+// postgres database
+func (rps MongoRepository) CreateAuthUser(handler.LoginForm) (handler.LoginForm, error) {
+
+	return handler.LoginForm{}, nil
 }

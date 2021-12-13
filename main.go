@@ -18,8 +18,8 @@ func main() {
 	}
 	cfg := repository.Config{
 		CurrentDB:     os.Getenv("CURRENTDB"),
-		PostgresdbUrl: os.Getenv("POSTGRESDB_URL"),
-		MongodbUrl:    os.Getenv("MONGODB_URL")}
+		PostgresdbURL: os.Getenv("POSTGRESDB_URL"),
+		MongodbURL:    os.Getenv("MONGODB_URL")}
 
 	if err := env.Parse(&cfg); err != nil {
 		fmt.Println(err)
@@ -32,6 +32,6 @@ func main() {
 	e.PUT("users/", h.UpdateUserByID)
 	e.DELETE("users/", h.DeleteUserByID)
 	e.GET("users/", h.GetUserByID)
-
+	e.POST("login/", h.Registration)
 	e.Logger.Fatal(e.Start(":8081"))
 }

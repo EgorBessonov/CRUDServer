@@ -1,13 +1,12 @@
 package repository
 
 import (
-	"CRUDServer/internal/handler"
 	"context"
-	"time"
 	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+	"time"
 )
 
 // MongoRepository type replies for accessing to mongo database
@@ -21,25 +20,17 @@ func (rps MongoRepository) CreateUser(u User) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	result, err := col.InsertOne(ctx, bson.D{
+	_, err := col.InsertOne(ctx, bson.D{
 		{Key: "_id", Value: uuid.New().String()},
 		{Key: "userName", Value: u.UserName},
 		{Key: "userAge", Value: u.UserAge},
 		{Key: "isAdult", Value: u.IsAdult},
 	})
 	if err != nil {
-		log.WithFields(log.Fields{
-			"method": "CreateUser()",
-			"status": "Failed while inserting.",
-			"error":  err,
-		}).Info("Mongo repository info.")
+		mongoOperationError(err, "CreateUser()")
 		return err
 	}
-	log.WithFields(log.Fields{
-		"method":     "CreateUser()",
-		"status":     "Successfully inserted.",
-		"insertedID": result.InsertedID,
-	}).Info("Mongo repository info.")
+	mongoOperationSuccess("CreateUser()")
 	return nil
 }
 
@@ -53,18 +44,10 @@ func (rps MongoRepository) ReadUser(userID string) (User, error) {
 	var rUser User
 	err := col.FindOne(ctx, bson.D{{Key: "_id", Value: userID}}).Decode(&rUser)
 	if err != nil {
-		log.WithFields(log.Fields{
-			"method": "ReadUser()",
-			"status": "Failed while reading.",
-			"error":  err,
-		}).Info("Mongo repository info.")
+		mongoOperationError(err, "ReadUser()")
 		return User{}, err
 	}
-	log.WithFields(log.Fields{
-		"method": "ReadUser()",
-		"status": "Successfully read.",
-		"time":   time.Now(),
-	}).Info("Mongo repository info.")
+	mongoOperationSuccess("ReadUser()")
 	return rUser, nil
 }
 
@@ -75,24 +58,16 @@ func (rps MongoRepository) UpdateUser(u User) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	result, err := col.UpdateOne(ctx, bson.D{{Key: "_id", Value: u.UserID}}, bson.D{
+	_, err := col.UpdateOne(ctx, bson.D{{Key: "_id", Value: u.UserID}}, bson.D{
 		{Key: "userName", Value: u.UserName},
 		{Key: "userAge", Value: u.UserAge},
 		{Key: "isAdult", Value: u.IsAdult},
 	})
 	if err != nil {
-		log.WithFields(log.Fields{
-			"method": "UpdateUser()",
-			"status": "Failed while updating.",
-			"error":  err,
-		}).Info("Mongo repository info.")
+		mongoOperationError(err, "UpdateUser()")
 		return err
 	}
-	log.WithFields(log.Fields{
-		"method":        "UpdateUser()",
-		"status":        "Successfully updated.",
-		"upsertedCount": result.UpsertedCount,
-	}).Info("Mongo repository info.")
+	mongoOperationSuccess("UpdateUser()")
 	return nil
 }
 
@@ -103,20 +78,12 @@ func (rps MongoRepository) DeleteUser(userID string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	result, err := col.DeleteOne(ctx, bson.D{{Key: "_id", Value: userID}})
+	_, err := col.DeleteOne(ctx, bson.D{{Key: "_id", Value: userID}})
 	if err != nil {
-		log.WithFields(log.Fields{
-			"method": "DeleteUser()",
-			"status": "Failed while deleting.",
-			"error":  err,
-		}).Info("Mongo repository info.")
+		mongoOperationError(err, "DeleteUser()")
 		return err
 	}
-	log.WithFields(log.Fields{
-		"method":       "DeleteUser()",
-		"status":       "Successfully deleted.",
-		"deletedCount": result.DeletedCount,
-	}).Info("Mongo repository info.")
+	mongoOperationSuccess("DeleteUser()")
 	return nil
 }
 
@@ -130,15 +97,30 @@ func (rps MongoRepository) GetImage() {
 	// TODO
 }
 
-// GetAuthUser return authentification info about user into
+// GetAuthUser return authentication info about user into
 // postgres database
-func (rps MongoRepository) GetAuthUser(email string) error{
+func (rps MongoRepository) GetAuthUser(email string) (LoginForm, error) {
+	return LoginForm{}, nil
+}
+
+// CreateAuthUser save authentication info about user into
+// postgres database
+func (rps MongoRepository) CreateAuthUser(LoginForm) error {
+
 	return nil
 }
 
-// CreateAuthUser save authentification info about user into
-// postgres database
-func (rps MongoRepository) CreateAuthUser(handler.LoginForm) (handler.LoginForm, error) {
+func mongoOperationError(err error, method string) {
+	log.WithFields(log.Fields{
+		"method": method,
+		"status": "Operation failed.",
+		"error":  err,
+	}).Info("Mongo repository info.")
+}
 
-	return handler.LoginForm{}, nil
+func mongoOperationSuccess(method string) {
+	log.WithFields(log.Fields{
+		"method": method,
+		"status": "Operation ended successfully",
+	}).Info("Mongo repository info.")
 }

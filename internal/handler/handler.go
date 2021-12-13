@@ -145,13 +145,11 @@ func (h Handler) UpdateUserByID(c echo.Context) error {
 }
 
 // AddImage is echo handler(POST) for saving user images
-func (h Handler) AddImage(c echo.Context) error{
+func (h Handler) AddImage(c echo.Context) error {
 	return nil
 }
-
 
 // GetImageByUserID is echo handler(GET) for getting user images
-func (h Handler) GetImageByUserID(c echo.Context) error{
+func (h Handler) GetImageByUserID(c echo.Context) error {
 	return nil
 }
-

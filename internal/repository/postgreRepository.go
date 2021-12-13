@@ -1,9 +1,7 @@
 package repository
 
 import (
-	"CRUDServer/internal/handler"
 	"context"
-
 	"github.com/jackc/pgconn"
 	"github.com/jackc/pgx/v4/pgxpool"
 	log "github.com/sirupsen/logrus"
@@ -19,10 +17,10 @@ func (rps PostgresRepository) CreateUser(u User) error {
 	result, err := rps.DBconn.Exec(context.Background(), "insert into users (userName, userAge, isAdult) "+
 		"values ($1, $2, $3)", u.UserName, u.UserAge, u.IsAdult)
 	if err != nil {
-		logOperationError(err, "CreateUser()")
+		postgresOperationError(err, "CreateUser()")
 		return err
 	}
-	logOperationSuccess(result, "CreateUser()")
+	postgresOperationSuccess(result, "CreateUser()")
 	return nil
 }
 
@@ -33,10 +31,10 @@ func (rps PostgresRepository) ReadUser(u string) (User, error) {
 	err := rps.DBconn.QueryRow(context.Background(), "select userName, userAge, isAdult from users "+
 		"where userId=$1", u).Scan(&user.UserName, &user.UserAge, &user.IsAdult)
 	if err != nil {
-		logOperationError(err, "ReadUser()")
+		postgresOperationError(err, "ReadUser()")
 		return User{}, err
 	}
-	logOperationSuccess(nil, "ReadUser()")
+	postgresOperationSuccess(nil, "ReadUser()")
 	return user, nil
 }
 
@@ -48,10 +46,10 @@ func (rps PostgresRepository) UpdateUser(u User) error {
 		"where userid=$1", u.UserID, u.UserName, u.UserAge, u.IsAdult)
 
 	if err != nil {
-		logOperationError(err, "UpdateUser()")
+		postgresOperationError(err, "UpdateUser()")
 		return err
 	}
-	logOperationSuccess(result, "UpdateUser()")
+	postgresOperationSuccess(result, "UpdateUser()")
 	return nil
 }
 
@@ -60,10 +58,10 @@ func (rps PostgresRepository) UpdateUser(u User) error {
 func (rps PostgresRepository) DeleteUser(userID string) error {
 	result, err := rps.DBconn.Exec(context.Background(), "delete from users where userId=$1", userID)
 	if err != nil {
-		logOperationError(err, "DeleteUser()")
+		postgresOperationError(err, "DeleteUser()")
 		return err
 	}
-	logOperationSuccess(result, "DeleteUser()")
+	postgresOperationSuccess(result, "DeleteUser()")
 	return nil
 }
 
@@ -77,31 +75,37 @@ func (rps PostgresRepository) GetImage() {
 
 }
 
-// CreateAuthUser save authentification info about user into
+// CreateAuthUser save authentication info about user into
 // postgres database
-func (rps PostgresRepository) CreateAuthUser(lf handler.LoginForm)error{
-	
+func (rps PostgresRepository) CreateAuthUser(lf LoginForm) error {
+	result, err := rps.DBconn.Exec(context.Background(), "insert into authusers (email, password"+
+		"values($1, $2)", lf.Email, lf.Password)
+	if err != nil {
+		postgresOperationError(err, "CreateAuthUser()")
+		return err
+	}
+	postgresOperationSuccess(result, "CreateAuthUser()")
 	return nil
 }
 
-// GetAuthUser return authentification info about user into
+// GetAuthUser return authentication info about user into
 // postgres database
-func (rps PostgresRepository) GetAuthUser(){
-	
+func (rps PostgresRepository) GetAuthUser(string) (LoginForm, error) {
+	return LoginForm{}, nil
 }
 
-func logOperationError(err error, method string) {
+func postgresOperationError(err error, method string) {
 	log.WithFields(log.Fields{
 		"method": method,
 		"status": "Operation failed.",
 		"error":  err,
-	}).Info("Postgresql repository info.")
+	}).Info("Postgres repository info.")
 }
 
-func logOperationSuccess(result pgconn.CommandTag, method string) {
+func postgresOperationSuccess(result pgconn.CommandTag, method string) {
 	log.WithFields(log.Fields{
 		"method": method,
 		"status": "Operation ended successfully",
 		"result": result,
-	}).Info("Postgresql repository info.")
+	}).Info("Postgres repository info.")
 }

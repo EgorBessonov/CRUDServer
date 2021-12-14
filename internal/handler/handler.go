@@ -55,12 +55,6 @@ func NewHandler(cfg repository.Config) *Handler {
 		h := Handler{repository.PostgresRepository{
 			DBconn: conn,
 		}}
-		defer func() {
-			conn.Close()
-			log.WithFields(log.Fields{
-				"status": "Connection to postgres database was successfully closed.",
-			}).Info("Postgres repository info.")
-		}()
 		return &h
 	}
 	return nil

@@ -99,13 +99,13 @@ func (rps MongoRepository) GetImage() {
 
 // GetAuthUser return authentication info about user into
 // postgres database
-func (rps MongoRepository) GetAuthUser(email string) (LoginForm, error) {
-	return LoginForm{}, nil
+func (rps MongoRepository) GetAuthUser(email string) (AuthForm, error) {
+	return AuthForm{}, nil
 }
 
 // CreateAuthUser save authentication info about user into
 // postgres database
-func (rps MongoRepository) CreateAuthUser(lf LoginForm) error {
+func (rps MongoRepository) CreateAuthUser(lf AuthForm) error {
 	col := rps.DBconn.Database("crudserver").Collection("authusers")
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -119,6 +119,20 @@ func (rps MongoRepository) CreateAuthUser(lf LoginForm) error {
 		return err
 	}
 	mongoOperationSuccess("CreateAuthUser()")
+	return nil
+}
+
+// CloseDBConnection is using for closing current mongo database connection
+func (rps MongoRepository) CloseDBConnection() error {
+	if &rps == nil {
+		return nil
+	}
+	err := rps.DBconn.Disconnect(context.Background())
+	if err != nil {
+		mongoOperationError(err, "CloseDBConnection()")
+	} else {
+		mongoOperationSuccess("CloseDBConnection()")
+	}
 	return nil
 }
 

@@ -77,9 +77,9 @@ func (rps PostgresRepository) GetImage() {
 
 // CreateAuthUser save authentication info about user into
 // postgres database
-func (rps PostgresRepository) CreateAuthUser(lf LoginForm) error {
-	result, err := rps.DBconn.Exec(context.Background(), "insert into authusers (email, password"+
-		"values($1, $2)", lf.Email, lf.Password)
+func (rps PostgresRepository) CreateAuthUser(lf AuthForm) error {
+	result, err := rps.DBconn.Exec(context.Background(), "insert into authusers (username, email, password)"+
+		"values($1, $2, $3)", lf.UserName, lf.Email, lf.Password)
 	if err != nil {
 		postgresOperationError(err, "CreateAuthUser()")
 		return err
@@ -90,8 +90,15 @@ func (rps PostgresRepository) CreateAuthUser(lf LoginForm) error {
 
 // GetAuthUser return authentication info about user into
 // postgres database
-func (rps PostgresRepository) GetAuthUser(string) (LoginForm, error) {
-	return LoginForm{}, nil
+func (rps PostgresRepository) GetAuthUser(string) (AuthForm, error) {
+	return AuthForm{}, nil
+}
+
+// CloseDBConnection is using to close current postgres database connection
+func (rps PostgresRepository) CloseDBConnection() error {
+	rps.DBconn.Close()
+	postgresOperationSuccess(nil, "CloseDBConnection")
+	return nil
 }
 
 func postgresOperationError(err error, method string) {

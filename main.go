@@ -32,6 +32,6 @@ func main() {
 	e.PUT("users/", h.UpdateUserByID)
 	e.DELETE("users/", h.DeleteUserByID)
 	e.GET("users/", h.GetUserByID)
-	e.POST("login/", h.Registration)
+	e.POST("registration/", h.Registration)
 	e.Logger.Fatal(e.Start(":8081"))
 }

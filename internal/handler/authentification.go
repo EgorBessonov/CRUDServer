@@ -14,7 +14,8 @@ func (h Handler) Registration(c echo.Context) error {
 	if err != nil {
 		return c.String(http.StatusInternalServerError, "Registration failed.")
 	}
-	err = h.rps.CreateAuthUser(repository.LoginForm{
+	err = h.rps.CreateAuthUser(repository.AuthForm{
+		UserName: c.QueryParam("userName"),
 		Email:    c.QueryParam("email"),
 		Password: hashedPassword,
 	})

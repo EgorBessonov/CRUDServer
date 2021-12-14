@@ -8,10 +8,13 @@ type Config struct {
 	MongodbURL    string `env:"MONGODB_URL"`
 }
 
-// LoginForm struct represents user login information
-type LoginForm struct {
-	Email    string `json:"email" bson:"email"`
-	Password string `json:"password" bson:"password"`
+// AuthForm struct represents user login information
+type AuthForm struct {
+	UserID       int    `json:"userID" bson:"userID"`
+	UserName     string `json:"userName" bson:"userName"`
+	Email        string `json:"email" bson:"email"`
+	Password     string `json:"password" bson:"password"`
+	RefreshToken string `json:"refreshToken" bson:"refreshToken"`
 }
 
 // User type represent user structure in database
@@ -30,6 +33,7 @@ type IRepository interface {
 	DeleteUser(string) error
 	AddImage()
 	GetImage()
-	CreateAuthUser(LoginForm) error
-	GetAuthUser(string) (LoginForm, error)
+	CreateAuthUser(AuthForm) error
+	GetAuthUser(string) (AuthForm, error)
+	CloseDBConnection() error
 }

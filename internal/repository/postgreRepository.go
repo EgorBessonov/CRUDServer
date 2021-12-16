@@ -77,7 +77,7 @@ func (rps PostgresRepository) GetImage() {
 
 // CreateAuthUser save authentication info about user into
 // postgres database
-func (rps PostgresRepository) CreateAuthUser(lf AuthForm) error {
+func (rps PostgresRepository) CreateAuthUser(lf RegistrationForm) error {
 	result, err := rps.DBconn.Exec(context.Background(), "insert into authusers (username, email, password)"+
 		"values($1, $2, $3)", lf.UserName, lf.Email, lf.Password)
 	if err != nil {
@@ -90,16 +90,37 @@ func (rps PostgresRepository) CreateAuthUser(lf AuthForm) error {
 
 // GetAuthUser return authentication info about user into
 // postgres database
-func (rps PostgresRepository) GetAuthUser(string) (AuthForm, error) {
-	return AuthForm{}, nil
+func (rps PostgresRepository) GetAuthUser(password string) (RegistrationForm, error) {
+	var authUser RegistrationForm
+	err := rps.DBconn.QueryRow(context.Background(), "select userid, username, email, password, createdat from authusers"+
+	"where email=$1", password).Scan(&authUser.UserID, &authUser.UserName, &authUser.Email, &authUser.Password, &authUser.CreatedAt)
+	if err != nil{
+		postgresOperationError(err, "GetAuthUser()")
+		return RegistrationForm{}, err
+	}
+	postgresOperationSuccess(nil, "GetAuthUser()")
+	return authUser, nil
 }
 
+// UpdateAuthUser is method to set refresh token into authuser info
+func (rps PostgresRepository) UpdateAuthUser(lf *RegistrationForm) error {
+	result, err := rps.DBconn.Exec(context.Background(), "update authusers "+
+	"set refreshtoken=$2, expiresin=$3, createdat=$4"+
+	"where email=$1", lf.Email, lf.RefreshToken, lf.ExpiresIn, lf.CreatedAt)
+	if err != nil{
+		postgresOperationError(err, "UpdateAuthUser()")
+		return err
+	}
+	postgresOperationSuccess(result, "UpdateAuthUser()")
+	return nil
+}
 // CloseDBConnection is using to close current postgres database connection
 func (rps PostgresRepository) CloseDBConnection() error {
 	rps.DBconn.Close()
 	postgresOperationSuccess(nil, "CloseDBConnection")
 	return nil
 }
+
 
 func postgresOperationError(err error, method string) {
 	log.WithFields(log.Fields{

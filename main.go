@@ -27,11 +27,17 @@ func main() {
 	e := echo.New()
 
 	h := handler.NewHandler(cfg)
+	
+	e.POST("users/saveUser/", h.SaveUser)
+	e.PUT("users/updateUser/", h.UpdateUserByID)
+	e.DELETE("users/deleteUser/", h.DeleteUserByID)
+	e.GET("users/getUser", h.GetUserByID)
 
-	e.POST("users/", h.SaveUser)
-	e.PUT("users/", h.UpdateUserByID)
-	e.DELETE("users/", h.DeleteUserByID)
-	e.GET("users/", h.GetUserByID)
-	e.POST("registration/", h.Registration)
+	e.POST("auth/registration/", h.Registration)
+	e.POST("auth/authentication/", h.Authentication)
+	e.POST("auth/authorization/", h.Authorization)
+	e.POST("auth/refreshToken/", h.RefreshToken)
+	e.POST("auth/logout/", h.Logout)
+
 	e.Logger.Fatal(e.Start(":8081"))
 }

@@ -1,6 +1,10 @@
 // Package repository replies for database access
 package repository
 
+import(
+	"time"
+)
+
 // Config type replies for connection to current database
 type Config struct {
 	CurrentDB     string `env:"CURRENTDB" envDefault:"postgres"`
@@ -8,13 +12,15 @@ type Config struct {
 	MongodbURL    string `env:"MONGODB_URL"`
 }
 
-// AuthForm struct represents user login information
-type AuthForm struct {
+// RegistrationForm struct represents user information
+type RegistrationForm struct {
 	UserID       int    `json:"userID" bson:"userID"`
 	UserName     string `json:"userName" bson:"userName"`
 	Email        string `json:"email" bson:"email"`
 	Password     string `json:"password" bson:"password"`
 	RefreshToken string `json:"refreshToken" bson:"refreshToken"`
+	ExpiresIn string `json:"expiresIn" bson:"expiresIn"`
+	CreatedAt time.Time `json:"createdAt" bson:"createdAt"`
 }
 
 // User type represent user structure in database
@@ -33,7 +39,7 @@ type IRepository interface {
 	DeleteUser(string) error
 	AddImage()
 	GetImage()
-	CreateAuthUser(AuthForm) error
-	GetAuthUser(string) (AuthForm, error)
+	CreateAuthUser(RegistrationForm) error
+	GetAuthUser(string) (RegistrationForm, error)
 	CloseDBConnection() error
 }

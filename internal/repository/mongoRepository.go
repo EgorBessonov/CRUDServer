@@ -99,13 +99,13 @@ func (rps MongoRepository) GetImage() {
 
 // GetAuthUser return authentication info about user into
 // postgres database
-func (rps MongoRepository) GetAuthUser(email string) (AuthForm, error) {
-	return AuthForm{}, nil
+func (rps MongoRepository) GetAuthUser(email string) (RegistrationForm, error) {
+	return RegistrationForm{}, nil
 }
 
 // CreateAuthUser save authentication info about user into
 // postgres database
-func (rps MongoRepository) CreateAuthUser(lf AuthForm) error {
+func (rps MongoRepository) CreateAuthUser(lf RegistrationForm) error {
 	col := rps.DBconn.Database("crudserver").Collection("authusers")
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()

@@ -147,3 +147,4 @@ func (h Handler) AddImage(c echo.Context) error {
 func (h Handler) GetImageByUserID(c echo.Context) error {
 	return nil
 }
+

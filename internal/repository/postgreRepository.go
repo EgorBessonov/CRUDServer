@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"fmt"
 	"github.com/jackc/pgconn"
 	"github.com/jackc/pgx/v4/pgxpool"
 	log "github.com/sirupsen/logrus"
@@ -65,19 +66,10 @@ func (rps PostgresRepository) DeleteUser(userID string) error {
 	return nil
 }
 
-// AddImage function
-func (rps PostgresRepository) AddImage() {
-
-}
-
-// GetImage function
-func (rps PostgresRepository) GetImage() {
-
-}
-
 // CreateAuthUser save authentication info about user into
 // postgres database
 func (rps PostgresRepository) CreateAuthUser(lf RegistrationForm) error {
+	fmt.Println(lf)
 	result, err := rps.DBconn.Exec(context.Background(), "insert into authusers (username, email, password)"+
 		"values($1, $2, $3)", lf.UserName, lf.Email, lf.Password)
 	if err != nil {
@@ -90,11 +82,11 @@ func (rps PostgresRepository) CreateAuthUser(lf RegistrationForm) error {
 
 // GetAuthUser return authentication info about user into
 // postgres database
-func (rps PostgresRepository) GetAuthUser(password string) (RegistrationForm, error) {
+func (rps PostgresRepository) GetAuthUser(email string) (RegistrationForm, error) {
 	var authUser RegistrationForm
-	err := rps.DBconn.QueryRow(context.Background(), "select userid, username, email, password, createdat from authusers"+
-	"where email=$1", password).Scan(&authUser.UserID, &authUser.UserName, &authUser.Email, &authUser.Password, &authUser.CreatedAt)
-	if err != nil{
+	err := rps.DBconn.QueryRow(context.Background(), "select useruuid, username, email, password from authusers "+
+		"where email=$1", email).Scan(&authUser.UserUUID, &authUser.UserName, &authUser.Email, &authUser.Password)
+	if err != nil {
 		postgresOperationError(err, "GetAuthUser()")
 		return RegistrationForm{}, err
 	}
@@ -102,25 +94,36 @@ func (rps PostgresRepository) GetAuthUser(password string) (RegistrationForm, er
 	return authUser, nil
 }
 
+func (rps PostgresRepository) DeleteAuthUser(email string, password string) error {
+	result, err := rps.DBconn.Exec(context.Background(), "delete from authusers "+
+		"where email=$1 and password=$2", email, password)
+	if err != nil {
+		postgresOperationError(err, "DeleteAuthUser()")
+		return err
+	}
+	postgresOperationSuccess(result, "DeleteAuthUser()")
+	return nil
+}
+
 // UpdateAuthUser is method to set refresh token into authuser info
-func (rps PostgresRepository) UpdateAuthUser(lf *RegistrationForm) error {
+func (rps PostgresRepository) UpdateAuthUser(email string, refreshToken string) error {
 	result, err := rps.DBconn.Exec(context.Background(), "update authusers "+
-	"set refreshtoken=$2, expiresin=$3, createdat=$4"+
-	"where email=$1", lf.Email, lf.RefreshToken, lf.ExpiresIn, lf.CreatedAt)
-	if err != nil{
+		"set refreshtoken=$2"+
+		"where email=$1", email, refreshToken)
+	if err != nil {
 		postgresOperationError(err, "UpdateAuthUser()")
 		return err
 	}
 	postgresOperationSuccess(result, "UpdateAuthUser()")
 	return nil
 }
+
 // CloseDBConnection is using to close current postgres database connection
 func (rps PostgresRepository) CloseDBConnection() error {
 	rps.DBconn.Close()
 	postgresOperationSuccess(nil, "CloseDBConnection")
 	return nil
 }
-
 
 func postgresOperationError(err error, method string) {
 	log.WithFields(log.Fields{

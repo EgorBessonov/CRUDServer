@@ -87,16 +87,6 @@ func (rps MongoRepository) DeleteUser(userID string) error {
 	return nil
 }
 
-// AddImage function
-func (rps MongoRepository) AddImage() {
-	// TODO
-}
-
-// GetImage function
-func (rps MongoRepository) GetImage() {
-	// TODO
-}
-
 // GetAuthUser return authentication info about user into
 // postgres database
 func (rps MongoRepository) GetAuthUser(email string) (RegistrationForm, error) {
@@ -119,6 +109,10 @@ func (rps MongoRepository) CreateAuthUser(lf RegistrationForm) error {
 		return err
 	}
 	mongoOperationSuccess("CreateAuthUser()")
+	return nil
+}
+
+func (rps MongoRepository) UpdateAuthUser(email string, refreshtoken string) error {
 	return nil
 }
 

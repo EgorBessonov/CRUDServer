@@ -11,7 +11,9 @@ import (
 	log "github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"io"
 	"net/http"
+	"os"
 	"strconv"
 )
 
@@ -138,13 +140,49 @@ func (h Handler) UpdateUserByID(c echo.Context) error {
 	return c.String(http.StatusOK, fmt.Sprintln("Successfully updated."))
 }
 
-// AddImage is echo handler(POST) for saving user images
-func (h Handler) AddImage(c echo.Context) error {
-	return nil
+// UploadImage is echo handler(POST) for uploading user images from server
+func (h Handler) UploadImage(c echo.Context) error {
+	imageFile, err := c.FormFile("image")
+	if err != nil {
+		handlerOperationError(err, "UploadImage()")
+		return c.String(http.StatusInternalServerError, "Operation failed.")
+	}
+	imageSrc, err := imageFile.Open()
+	if err != nil {
+		handlerOperationError(err, "UploadImage()")
+		return c.String(http.StatusInternalServerError, "Operation failed.")
+	}
+	defer func() {
+		err = imageSrc.Close()
+		if err != nil {
+			handlerOperationError(err, "UploadImage()")
+		}
+	}()
+	dst, err := os.Create(imageFile.Filename)
+	if err != nil {
+		handlerOperationError(err, "UploadImage()")
+		return c.String(http.StatusInternalServerError, "Operation failed.")
+	}
+	if _, err = io.Copy(dst, imageSrc); err != nil {
+		handlerOperationError(err, "UploadImage()")
+		return c.String(http.StatusInternalServerError, "Operation failed.")
+	}
+	return c.String(http.StatusOK, fmt.Sprintln("Successfully uploaded."))
 }
 
-// GetImageByUserID is echo handler(GET) for getting user images
-func (h Handler) GetImageByUserID(c echo.Context) error {
-	return nil
+// DownloadImage is echo handler(GET) for downloading user images
+func (h Handler) DownloadImage(c echo.Context) error {
+	imageName := c.QueryParam("imageName")
+	if imageName == "" {
+		return c.String(http.StatusBadRequest, fmt.Sprintln("Invalid image name."))
+	}
+	return c.File(imageName)
 }
 
+func handlerOperationError(err error, method string) {
+	log.WithFields(log.Fields{
+		"status": "Operation Failed.",
+		"method": method,
+		"error":  err,
+	}).Info("Handler info.")
+}

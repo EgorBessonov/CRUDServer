@@ -14,7 +14,7 @@ type MongoRepository struct {
 	DBconn *mongo.Client
 }
 
-// CreateUser save User object into mongo database
+// CreateUser method saves User object into mongo database
 func (rps MongoRepository) CreateUser(u User) error {
 	col := rps.DBconn.Database("crudserver").Collection("users")
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -34,7 +34,7 @@ func (rps MongoRepository) CreateUser(u User) error {
 	return nil
 }
 
-// ReadUser returns User object from mongo database
+// ReadUser method returns User object from mongo database
 // with selection by UserId
 func (rps MongoRepository) ReadUser(userID string) (User, error) {
 	col := rps.DBconn.Database("crudserver").Collection("users")
@@ -51,7 +51,7 @@ func (rps MongoRepository) ReadUser(userID string) (User, error) {
 	return rUser, nil
 }
 
-// UpdateUser update User object from mongo database
+// UpdateUser method updates User object from mongo database
 // with selection by UserId
 func (rps MongoRepository) UpdateUser(u User) error {
 	col := rps.DBconn.Database("crudserver").Collection("users")
@@ -71,7 +71,7 @@ func (rps MongoRepository) UpdateUser(u User) error {
 	return nil
 }
 
-// DeleteUser delete User object from mongo database
+// DeleteUser method deletes User object from mongo database
 // with selection by UserId
 func (rps MongoRepository) DeleteUser(userID string) error {
 	col := rps.DBconn.Database("crudserver").Collection("users")
@@ -87,13 +87,19 @@ func (rps MongoRepository) DeleteUser(userID string) error {
 	return nil
 }
 
-// GetAuthUser return authentication info about user into
-// postgres database
+// GetAuthUser method returns authentication info about user from
+// mongo database with selection by email
 func (rps MongoRepository) GetAuthUser(email string) (RegistrationForm, error) {
 	return RegistrationForm{}, nil
 }
 
-// CreateAuthUser save authentication info about user into
+// GetAuthUserByID method returns authentication info about user from
+// mongo database with selection by ID
+func (rps MongoRepository) GetAuthUserByID(userUUID string) (RegistrationForm, error) {
+	return RegistrationForm{}, nil
+}
+
+// CreateAuthUser method saves authentication info about user into
 // postgres database
 func (rps MongoRepository) CreateAuthUser(lf RegistrationForm) error {
 	col := rps.DBconn.Database("crudserver").Collection("authusers")
@@ -112,15 +118,13 @@ func (rps MongoRepository) CreateAuthUser(lf RegistrationForm) error {
 	return nil
 }
 
-func (rps MongoRepository) UpdateAuthUser(email string, refreshtoken string) error {
+// UpdateAuthUser method changes user refresh token
+func (rps MongoRepository) UpdateAuthUser(email, refreshToken string) error {
 	return nil
 }
 
 // CloseDBConnection is using for closing current mongo database connection
 func (rps MongoRepository) CloseDBConnection() error {
-	if &rps == nil {
-		return nil
-	}
 	err := rps.DBconn.Disconnect(context.Background())
 	if err != nil {
 		mongoOperationError(err, "CloseDBConnection()")

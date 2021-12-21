@@ -66,12 +66,12 @@ func NewHandler(cfg repository.Config) *Handler {
 func (h Handler) SaveUser(c echo.Context) error {
 	userAge, err := strconv.Atoi(c.QueryParam("userAge"))
 	if err != nil {
-		return c.String(http.StatusInternalServerError, fmt.Sprintln("Error while converting data."))
+		return c.String(http.StatusInternalServerError, fmt.Sprintln("error while converting data."))
 	}
 
 	isAdult, err := strconv.ParseBool(c.QueryParam("isAdult"))
 	if err != nil {
-		return c.String(http.StatusInternalServerError, fmt.Sprintln("Error while converting data."))
+		return c.String(http.StatusInternalServerError, fmt.Sprintln("error while converting data."))
 	}
 	user := repository.User{
 		UserID:   uuid.New().Version().String(),
@@ -83,7 +83,7 @@ func (h Handler) SaveUser(c echo.Context) error {
 	if err != nil {
 		return c.String(http.StatusInternalServerError, fmt.Sprintln("Error while adding User to db."))
 	}
-	return c.String(http.StatusOK, fmt.Sprintln("Successfully added."))
+	return c.String(http.StatusOK, fmt.Sprintln("successfully added."))
 }
 
 // GetUserByID is echo handler(GET) which returns json structure of User object
@@ -91,7 +91,7 @@ func (h Handler) GetUserByID(c echo.Context) error {
 	userID := c.QueryParam("userId")
 	user, err := h.rps.ReadUser(userID)
 	if err != nil {
-		return c.String(http.StatusInternalServerError, fmt.Sprintln("Error while reading."))
+		return c.String(http.StatusInternalServerError, fmt.Sprintln("error while reading."))
 	}
 	return c.JSONBlob(
 		http.StatusOK,
@@ -110,21 +110,21 @@ func (h Handler) DeleteUserByID(c echo.Context) error {
 	fmt.Println(userID)
 	err := h.rps.DeleteUser(userID)
 	if err != nil {
-		return c.String(http.StatusInternalServerError, fmt.Sprintln("Error while deleting."))
+		return c.String(http.StatusInternalServerError, fmt.Sprintln("error while deleting."))
 	}
-	return c.String(http.StatusOK, fmt.Sprintln("Successfully deleted."))
+	return c.String(http.StatusOK, fmt.Sprintln("successfully deleted."))
 }
 
 // UpdateUserByID is echo handler(PUT) which return updating status
 func (h Handler) UpdateUserByID(c echo.Context) error {
 	userAge, err := strconv.Atoi(c.QueryParam("userAge"))
 	if err != nil {
-		return c.String(http.StatusInternalServerError, fmt.Sprintln("Error while converting data."))
+		return c.String(http.StatusInternalServerError, fmt.Sprintln("error while converting data."))
 	}
 
 	isAdult, err := strconv.ParseBool(c.QueryParam("isAdult"))
 	if err != nil {
-		return c.String(http.StatusInternalServerError, fmt.Sprintln("Error while converting data."))
+		return c.String(http.StatusInternalServerError, fmt.Sprintln("error while converting data."))
 	}
 
 	user := repository.User{
@@ -135,9 +135,9 @@ func (h Handler) UpdateUserByID(c echo.Context) error {
 	}
 	err = h.rps.UpdateUser(user)
 	if err != nil {
-		return c.String(http.StatusInternalServerError, fmt.Sprintln("Error while updating user"))
+		return c.String(http.StatusInternalServerError, fmt.Sprintln("error while updating user"))
 	}
-	return c.String(http.StatusOK, fmt.Sprintln("Successfully updated."))
+	return c.String(http.StatusOK, fmt.Sprintln("successfully updated."))
 }
 
 // UploadImage is echo handler(POST) for uploading user images from server
@@ -145,12 +145,12 @@ func (h Handler) UploadImage(c echo.Context) error {
 	imageFile, err := c.FormFile("image")
 	if err != nil {
 		handlerOperationError(err, "UploadImage()")
-		return c.String(http.StatusInternalServerError, "Operation failed.")
+		return c.String(http.StatusInternalServerError, "operation failed.")
 	}
 	imageSrc, err := imageFile.Open()
 	if err != nil {
 		handlerOperationError(err, "UploadImage()")
-		return c.String(http.StatusInternalServerError, "Operation failed.")
+		return c.String(http.StatusInternalServerError, "operation failed.")
 	}
 	defer func() {
 		err = imageSrc.Close()
@@ -161,20 +161,20 @@ func (h Handler) UploadImage(c echo.Context) error {
 	dst, err := os.Create(imageFile.Filename)
 	if err != nil {
 		handlerOperationError(err, "UploadImage()")
-		return c.String(http.StatusInternalServerError, "Operation failed.")
+		return c.String(http.StatusInternalServerError, "operation failed.")
 	}
 	if _, err = io.Copy(dst, imageSrc); err != nil {
 		handlerOperationError(err, "UploadImage()")
-		return c.String(http.StatusInternalServerError, "Operation failed.")
+		return c.String(http.StatusInternalServerError, "operation failed.")
 	}
-	return c.String(http.StatusOK, fmt.Sprintln("Successfully uploaded."))
+	return c.String(http.StatusOK, fmt.Sprintln("successfully uploaded."))
 }
 
 // DownloadImage is echo handler(GET) for downloading user images
 func (h Handler) DownloadImage(c echo.Context) error {
 	imageName := c.QueryParam("imageName")
 	if imageName == "" {
-		return c.String(http.StatusBadRequest, fmt.Sprintln("Invalid image name."))
+		return c.String(http.StatusBadRequest, fmt.Sprintln("invalid image name."))
 	}
 	return c.File(imageName)
 }

@@ -66,7 +66,7 @@ func (rps PostgresRepository) DeleteUser(userID string) error {
 	return nil
 }
 
-// CreateAuthUser save authentication info about user into
+// CreateAuthUser method saves authentication info about user into
 // postgres database
 func (rps PostgresRepository) CreateAuthUser(lf RegistrationForm) error {
 	fmt.Println(lf)
@@ -80,8 +80,8 @@ func (rps PostgresRepository) CreateAuthUser(lf RegistrationForm) error {
 	return nil
 }
 
-// GetAuthUser return authentication info about user into
-// postgres database
+// GetAuthUser method returns authentication info about user from
+// postgres database with selection by email
 func (rps PostgresRepository) GetAuthUser(email string) (RegistrationForm, error) {
 	var authUser RegistrationForm
 	err := rps.DBconn.QueryRow(context.Background(), "select useruuid, username, email, password from authusers "+
@@ -94,19 +94,22 @@ func (rps PostgresRepository) GetAuthUser(email string) (RegistrationForm, error
 	return authUser, nil
 }
 
-func (rps PostgresRepository) DeleteAuthUser(email string, password string) error {
-	result, err := rps.DBconn.Exec(context.Background(), "delete from authusers "+
-		"where email=$1 and password=$2", email, password)
+// GetAuthUserByID method returns authentication info about user from
+// postgres database with selection by id
+func (rps PostgresRepository) GetAuthUserByID(userUUID string) (RegistrationForm, error) {
+	var authUser RegistrationForm
+	err := rps.DBconn.QueryRow(context.Background(), "select useruuid, username, email, password, refreshtoken from authusers "+
+		"where useruuid=$1", userUUID).Scan(&authUser.UserUUID, &authUser.UserName, &authUser.Email, &authUser.Password, &authUser.RefreshToken)
 	if err != nil {
-		postgresOperationError(err, "DeleteAuthUser()")
-		return err
+		postgresOperationError(err, "GetAuthUserByID()")
+		return RegistrationForm{}, err
 	}
-	postgresOperationSuccess(result, "DeleteAuthUser()")
-	return nil
+	postgresOperationSuccess(nil, "GetAuthUserByID()")
+	return authUser, nil
 }
 
 // UpdateAuthUser is method to set refresh token into authuser info
-func (rps PostgresRepository) UpdateAuthUser(email string, refreshToken string) error {
+func (rps PostgresRepository) UpdateAuthUser(email, refreshToken string) error {
 	result, err := rps.DBconn.Exec(context.Background(), "update authusers "+
 		"set refreshtoken=$2"+
 		"where email=$1", email, refreshToken)

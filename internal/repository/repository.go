@@ -35,6 +35,7 @@ type IRepository interface {
 	DeleteUser(string) error
 	CreateAuthUser(RegistrationForm) error
 	GetAuthUser(string) (RegistrationForm, error)
-	UpdateAuthUser(email string, refreshtoken string) error
+	GetAuthUserByID(string) (RegistrationForm, error)
+	UpdateAuthUser(email string, refreshToken string) error
 	CloseDBConnection() error
 }

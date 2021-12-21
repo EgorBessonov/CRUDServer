@@ -28,23 +28,27 @@ func main() {
 		fmt.Println(err)
 	}
 	e := echo.New()
-	e.Use(middleware.Logger())
 
 	h := handler.NewHandler(cfg)
+	g := e.Group("/users")
+	config := middleware.JWTConfig{
+		Claims:     &handler.CustomClaims{},
+		SigningKey: []byte(cfg.SecretKey),
+	}
+	g.Use(middleware.JWTWithConfig(config))
 
-	e.POST("users/saveUser/", h.SaveUser)
-	e.PUT("users/updateUser/", h.UpdateUserByID)
-	e.DELETE("users/deleteUser/", h.DeleteUserByID)
-	e.GET("users/getUser", h.GetUserByID)
+	g.POST("/saveUser/", h.SaveUser)
+	g.PUT("/updateUser/", h.UpdateUserByID)
+	g.DELETE("/deleteUser/", h.DeleteUserByID)
+	g.GET("/getUser", h.GetUserByID)
 
-	e.POST("auth/registration/", h.Registration)
-	e.POST("auth/authentication/", h.Authentication)
-	e.POST("auth/authorization/", h.Authorization)
-	e.POST("auth/refreshToken/", h.RefreshToken)
-	e.POST("auth/logout/", h.Logout)
+	e.POST("registration/", h.Registration)
+	e.POST("authentication/", h.Authentication)
+	e.GET("refreshToken/", h.RefreshToken)
+	e.POST("logout/", h.Logout)
 
 	e.GET("images/downloadImage", h.DownloadImage)
 	e.POST("images/uploadImage", h.UploadImage)
-	
+
 	e.Logger.Fatal(e.Start(":8081"))
 }

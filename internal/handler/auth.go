@@ -2,6 +2,7 @@ package handler
 
 import (
 	"CRUDServer/internal/repository"
+	"context"
 	"crypto/sha256"
 	"encoding/base64"
 	"errors"
@@ -29,11 +30,11 @@ func (h Handler) Registration(c echo.Context) error {
 		return c.String(http.StatusInternalServerError, "registration failed.")
 	}
 
-	err = h.rps.CreateAuthUser(repository.RegistrationForm{
+	err = h.rps.CreateAuthUser(c.Request().Context(), repository.RegistrationForm{
 		UserName: c.QueryParam("userName"),
 		Email:    c.QueryParam("email"),
 		Password: hashedPassword,
-	}, c.Request().Context())
+	})
 	if err != nil {
 		return c.String(http.StatusInternalServerError, "error while saving form.")
 	}
@@ -43,19 +44,22 @@ func (h Handler) Registration(c echo.Context) error {
 
 // Authentication method checks user password and if it ok returns access and refresh tokens
 func (h Handler) Authentication(c echo.Context) error {
-	authUser, err := h.rps.GetAuthUser(c.QueryParam("email"), c.Request().Context())
+	authUser, err := h.rps.GetAuthUser(c.Request().Context(), c.QueryParam("email"))
 	if err != nil {
+		authOperationError(errors.New("invalid email"), "Authentication()")
 		return c.String(http.StatusBadRequest, "incorrect email")
 	}
 	hashedLoginPassword, err := hashPassword(c.QueryParam("password"))
 	if err != nil {
+		authOperationError(errors.New("hash password error"), "Authentication()")
 		return c.String(http.StatusInternalServerError, "login failed, try again")
 	}
 
 	if authUser.Password != hashedLoginPassword {
-		return c.String(http.StatusBadRequest, "incorrect password")
+		authOperationError(errors.New("invalid password"), "Authentication()")
+		return c.String(http.StatusBadRequest, "invalid password")
 	}
-	accessTokenString, refreshTokenString, err := h.createTokenPair(authUser, c)
+	accessTokenString, refreshTokenString, err := h.createTokenPair(c.Request().Context(), authUser)
 	if err != nil {
 		return c.String(http.StatusInternalServerError, fmt.Sprintln(err))
 	}
@@ -73,6 +77,7 @@ func (h Handler) Authentication(c echo.Context) error {
 func (h Handler) RefreshToken(c echo.Context) error {
 	refreshTokenString := c.QueryParam("refreshToken")
 	if refreshTokenString == "" {
+		authOperationError(errors.New("empty refresh token"), "RefreshToken()")
 		return c.String(http.StatusBadRequest, "empty refresh token.")
 	}
 	keyFunc := func(t *jwt.Token) (interface{}, error) {
@@ -84,22 +89,26 @@ func (h Handler) RefreshToken(c echo.Context) error {
 		return c.String(http.StatusInternalServerError, "error while parsing token.")
 	}
 	if !refreshToken.Valid {
+		authOperationError(errors.New("invalid token"), "RefreshToken()")
 		return c.String(http.StatusNonAuthoritativeInfo, "invalid token.")
 	}
 	claims := refreshToken.Claims.(jwt.MapClaims)
 	userUUID := claims["jti"]
 	if userUUID == "" {
+		authOperationError(errors.New("error while parsing token claims"), "refreshToken()")
 		return c.String(http.StatusInternalServerError, "error while parsing token.")
 	}
-	authUser, err := h.rps.GetAuthUserByID(userUUID.(string), c.Request().Context())
+	authUser, err := h.rps.GetAuthUserByID(c.Request().Context(), userUUID.(string))
 	if err != nil {
 		return c.String(http.StatusInternalServerError, "error while parsing token")
 	}
 	if refreshTokenString != authUser.RefreshToken {
+		authOperationError(errors.New("invalid refresh token"), "RefreshToken()")
 		return c.String(http.StatusBadRequest, "invalid refresh token")
 	}
-	newAccessTokenString, newRefreshTokenString, err := h.createTokenPair(authUser, c)
+	newAccessTokenString, newRefreshTokenString, err := h.createTokenPair(c.Request().Context(), authUser)
 	if err != nil {
+		authOperationError(errors.New("error while creating token"), "RefreshToken()")
 		return c.String(http.StatusInternalServerError, "error while creating tokens")
 	}
 	return c.JSONBlob(
@@ -116,16 +125,22 @@ func (h Handler) RefreshToken(c echo.Context) error {
 func (h Handler) Logout(c echo.Context) error {
 	email := c.QueryParam("email")
 	if email == "" {
+		authOperationError(errors.New("empty email value"), "Logout()")
 		return c.String(http.StatusBadRequest, "Empty value")
 	}
-	err := h.rps.UpdateAuthUser(email, "", c.Request().Context())
+	err := h.rps.UpdateAuthUser(c.Request().Context(), email, "")
 	if err != nil {
+		authOperationError(errors.New("logout error"), "Logout()")
 		return c.String(http.StatusInternalServerError, "logout error.")
 	}
+	log.WithFields(log.Fields{
+		"status": "Successfully",
+		"method": "Logout",
+	})
 	return c.String(http.StatusOK, "logout successfully")
 }
 
-func (h Handler) createTokenPair(authUser repository.RegistrationForm, ctx echo.Context) (string, string, error) {
+func (h Handler) createTokenPair(ctx context.Context, authUser repository.RegistrationForm) (string, string, error) {
 	expirationTimeAT := time.Now().Add(15 * time.Minute)
 	expirationTimeRT := time.Now().Add(time.Hour * 720)
 
@@ -158,7 +173,7 @@ func (h Handler) createTokenPair(authUser repository.RegistrationForm, ctx echo.
 		return "", "", fmt.Errorf("error while creating token")
 	}
 
-	err = h.rps.UpdateAuthUser(authUser.Email, refreshTokenString, ctx.Request().Context())
+	err = h.rps.UpdateAuthUser(ctx, authUser.Email, refreshTokenString)
 	if err != nil {
 		authOperationError(err, "Authentication()")
 		return "", "", fmt.Errorf("error while creating token")

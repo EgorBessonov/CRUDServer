@@ -1,11 +1,21 @@
 FROM golang:latest
 
-RUN go version
-ENV GOPATH=/
+ENV GOROOT  /usr/local/go
+ENV GOPATH /go
+WORKDIR /go/src/CRUDServer
 
-COPY ./ ./
 
+
+COPY go.mod ./
+COPY go.sum ./
 RUN go mod download
-RUN go build -o main.go
 
-CMD ["main.go"]
+COPY /internal/configs/config.env config.env
+COPY *.go ./
+
+
+RUN go build -o /docker_crudserver
+
+EXPOSE 8081
+
+CMD ["/docker_crudserver"]

@@ -31,13 +31,13 @@ type User struct {
 
 // Repository interface represent repository behavior
 type Repository interface {
-	CreateUser(User, context.Context) error
-	ReadUser(string, context.Context) (User, error)
-	UpdateUser(User, context.Context) error
-	DeleteUser(string, context.Context) error
-	CreateAuthUser(RegistrationForm, context.Context) error
-	GetAuthUser(string, context.Context) (RegistrationForm, error)
-	GetAuthUserByID(string, context.Context) (RegistrationForm, error)
-	UpdateAuthUser(email, refreshToken string, ctx context.Context) error
+	CreateUser(context.Context, User) error
+	ReadUser(context.Context, string) (User, error)
+	UpdateUser(context.Context, User) error
+	DeleteUser(context.Context, string) error
+	CreateAuthUser(context.Context, RegistrationForm) error
+	GetAuthUser(context.Context, string) (RegistrationForm, error)
+	GetAuthUserByID(context.Context, string) (RegistrationForm, error)
+	UpdateAuthUser(ctx context.Context, email, refreshToken string) error
 	CloseDBConnection() error
 }

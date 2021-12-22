@@ -15,7 +15,7 @@ type MongoRepository struct {
 }
 
 // CreateUser method saves User object into mongo database
-func (rps MongoRepository) CreateUser(u User, ctx context.Context) error {
+func (rps MongoRepository) CreateUser(ctx context.Context, u User) error {
 	col := rps.DBconn.Database("crudserver").Collection("users")
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
@@ -36,7 +36,7 @@ func (rps MongoRepository) CreateUser(u User, ctx context.Context) error {
 
 // ReadUser method returns User object from mongo database
 // with selection by UserId
-func (rps MongoRepository) ReadUser(userID string, ctx context.Context) (User, error) {
+func (rps MongoRepository) ReadUser(ctx context.Context, userID string) (User, error) {
 	col := rps.DBconn.Database("crudserver").Collection("users")
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
@@ -53,7 +53,7 @@ func (rps MongoRepository) ReadUser(userID string, ctx context.Context) (User, e
 
 // UpdateUser method updates User object from mongo database
 // with selection by UserId
-func (rps MongoRepository) UpdateUser(u User, ctx context.Context) error {
+func (rps MongoRepository) UpdateUser(ctx context.Context, u User) error {
 	col := rps.DBconn.Database("crudserver").Collection("users")
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
@@ -73,7 +73,7 @@ func (rps MongoRepository) UpdateUser(u User, ctx context.Context) error {
 
 // DeleteUser method deletes User object from mongo database
 // with selection by UserId
-func (rps MongoRepository) DeleteUser(userID string, ctx context.Context) error {
+func (rps MongoRepository) DeleteUser(ctx context.Context, userID string) error {
 	col := rps.DBconn.Database("crudserver").Collection("users")
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
@@ -89,19 +89,19 @@ func (rps MongoRepository) DeleteUser(userID string, ctx context.Context) error 
 
 // GetAuthUser method returns authentication info about user from
 // mongo database with selection by email
-func (rps MongoRepository) GetAuthUser(email string, ctx context.Context) (RegistrationForm, error) {
+func (rps MongoRepository) GetAuthUser(ctx context.Context, email string) (RegistrationForm, error) {
 	return RegistrationForm{}, nil
 }
 
 // GetAuthUserByID method returns authentication info about user from
 // mongo database with selection by ID
-func (rps MongoRepository) GetAuthUserByID(userUUID string, ctx context.Context) (RegistrationForm, error) {
+func (rps MongoRepository) GetAuthUserByID(ctx context.Context, userUUID string) (RegistrationForm, error) {
 	return RegistrationForm{}, nil
 }
 
 // CreateAuthUser method saves authentication info about user into
 // postgres database
-func (rps MongoRepository) CreateAuthUser(lf RegistrationForm, ctx context.Context) error {
+func (rps MongoRepository) CreateAuthUser(ctx context.Context, lf RegistrationForm) error {
 	col := rps.DBconn.Database("crudserver").Collection("authusers")
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
@@ -119,7 +119,7 @@ func (rps MongoRepository) CreateAuthUser(lf RegistrationForm, ctx context.Conte
 }
 
 // UpdateAuthUser method changes user refresh token
-func (rps MongoRepository) UpdateAuthUser(email, refreshToken string, ctx context.Context) error {
+func (rps MongoRepository) UpdateAuthUser(ctx context.Context, email, refreshToken string) error {
 	return nil
 }
 

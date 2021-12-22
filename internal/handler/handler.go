@@ -30,7 +30,7 @@ func (h Handler) SaveUser(c echo.Context) error {
 	user := repository.User{}
 	err := json.NewDecoder(c.Request().Body).Decode(&user)
 	fmt.Println(user)
-	err = h.rps.CreateUser(user, c.Request().Context())
+	err = h.rps.CreateUser(c.Request().Context(), user)
 	if err != nil {
 		return c.String(http.StatusInternalServerError, fmt.Sprintln("Error while adding User to db."))
 	}
@@ -40,7 +40,7 @@ func (h Handler) SaveUser(c echo.Context) error {
 // GetUserByID is echo handler(GET) which returns json structure of User object
 func (h Handler) GetUserByID(c echo.Context) error {
 	userID := c.QueryParam("userId")
-	user, err := h.rps.ReadUser(userID, c.Request().Context())
+	user, err := h.rps.ReadUser(c.Request().Context(), userID)
 	if err != nil {
 		return c.String(http.StatusInternalServerError, fmt.Sprintln("error while reading."))
 	}
@@ -59,7 +59,7 @@ func (h Handler) GetUserByID(c echo.Context) error {
 func (h Handler) DeleteUserByID(c echo.Context) error {
 	userID := c.QueryParam("userId")
 	fmt.Println(userID)
-	err := h.rps.DeleteUser(userID, c.Request().Context())
+	err := h.rps.DeleteUser(c.Request().Context(), userID)
 	if err != nil {
 		return c.String(http.StatusInternalServerError, fmt.Sprintln("error while deleting."))
 	}
@@ -84,7 +84,7 @@ func (h Handler) UpdateUserByID(c echo.Context) error {
 		UserAge:  userAge,
 		IsAdult:  isAdult,
 	}
-	err = h.rps.UpdateUser(user, c.Request().Context())
+	err = h.rps.UpdateUser(c.Request().Context(), user)
 	if err != nil {
 		return c.String(http.StatusInternalServerError, fmt.Sprintln("error while updating user"))
 	}

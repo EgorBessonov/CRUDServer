@@ -15,9 +15,9 @@ type MongoRepository struct {
 }
 
 // CreateUser method saves User object into mongo database
-func (rps MongoRepository) CreateUser(u User) error {
+func (rps MongoRepository) CreateUser(u User, ctx context.Context) error {
 	col := rps.DBconn.Database("crudserver").Collection("users")
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
 	_, err := col.InsertOne(ctx, bson.D{
@@ -36,9 +36,9 @@ func (rps MongoRepository) CreateUser(u User) error {
 
 // ReadUser method returns User object from mongo database
 // with selection by UserId
-func (rps MongoRepository) ReadUser(userID string) (User, error) {
+func (rps MongoRepository) ReadUser(userID string, ctx context.Context) (User, error) {
 	col := rps.DBconn.Database("crudserver").Collection("users")
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
 	var rUser User
@@ -53,9 +53,9 @@ func (rps MongoRepository) ReadUser(userID string) (User, error) {
 
 // UpdateUser method updates User object from mongo database
 // with selection by UserId
-func (rps MongoRepository) UpdateUser(u User) error {
+func (rps MongoRepository) UpdateUser(u User, ctx context.Context) error {
 	col := rps.DBconn.Database("crudserver").Collection("users")
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
 	_, err := col.UpdateOne(ctx, bson.D{{Key: "_id", Value: u.UserID}}, bson.D{
@@ -73,9 +73,9 @@ func (rps MongoRepository) UpdateUser(u User) error {
 
 // DeleteUser method deletes User object from mongo database
 // with selection by UserId
-func (rps MongoRepository) DeleteUser(userID string) error {
+func (rps MongoRepository) DeleteUser(userID string, ctx context.Context) error {
 	col := rps.DBconn.Database("crudserver").Collection("users")
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
 	_, err := col.DeleteOne(ctx, bson.D{{Key: "_id", Value: userID}})
@@ -89,21 +89,21 @@ func (rps MongoRepository) DeleteUser(userID string) error {
 
 // GetAuthUser method returns authentication info about user from
 // mongo database with selection by email
-func (rps MongoRepository) GetAuthUser(email string) (RegistrationForm, error) {
+func (rps MongoRepository) GetAuthUser(email string, ctx context.Context) (RegistrationForm, error) {
 	return RegistrationForm{}, nil
 }
 
 // GetAuthUserByID method returns authentication info about user from
 // mongo database with selection by ID
-func (rps MongoRepository) GetAuthUserByID(userUUID string) (RegistrationForm, error) {
+func (rps MongoRepository) GetAuthUserByID(userUUID string, ctx context.Context) (RegistrationForm, error) {
 	return RegistrationForm{}, nil
 }
 
 // CreateAuthUser method saves authentication info about user into
 // postgres database
-func (rps MongoRepository) CreateAuthUser(lf RegistrationForm) error {
+func (rps MongoRepository) CreateAuthUser(lf RegistrationForm, ctx context.Context) error {
 	col := rps.DBconn.Database("crudserver").Collection("authusers")
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
 	_, err := col.InsertOne(ctx, bson.D{
@@ -119,7 +119,7 @@ func (rps MongoRepository) CreateAuthUser(lf RegistrationForm) error {
 }
 
 // UpdateAuthUser method changes user refresh token
-func (rps MongoRepository) UpdateAuthUser(email, refreshToken string) error {
+func (rps MongoRepository) UpdateAuthUser(email, refreshToken string, ctx context.Context) error {
 	return nil
 }
 

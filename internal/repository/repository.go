@@ -1,6 +1,8 @@
 // Package repository replies for database access
 package repository
 
+import "context"
+
 // Config type replies for connection to current database
 type Config struct {
 	SecretKey     string `env:"SECRETKEY"`
@@ -27,15 +29,15 @@ type User struct {
 	IsAdult  bool   `json:"isAdult" bson:"isAdult"`
 }
 
-// IRepository interface represent repository behavior
-type IRepository interface {
-	CreateUser(User) error
-	ReadUser(string) (User, error)
-	UpdateUser(User) error
-	DeleteUser(string) error
-	CreateAuthUser(RegistrationForm) error
-	GetAuthUser(string) (RegistrationForm, error)
-	GetAuthUserByID(string) (RegistrationForm, error)
-	UpdateAuthUser(email string, refreshToken string) error
+// Repository interface represent repository behavior
+type Repository interface {
+	CreateUser(User, context.Context) error
+	ReadUser(string, context.Context) (User, error)
+	UpdateUser(User, context.Context) error
+	DeleteUser(string, context.Context) error
+	CreateAuthUser(RegistrationForm, context.Context) error
+	GetAuthUser(string, context.Context) (RegistrationForm, error)
+	GetAuthUserByID(string, context.Context) (RegistrationForm, error)
+	UpdateAuthUser(email, refreshToken string, ctx context.Context) error
 	CloseDBConnection() error
 }

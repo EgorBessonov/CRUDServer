@@ -33,7 +33,7 @@ func (h Handler) Registration(c echo.Context) error {
 		UserName: c.QueryParam("userName"),
 		Email:    c.QueryParam("email"),
 		Password: hashedPassword,
-	})
+	}, c.Request().Context())
 	if err != nil {
 		return c.String(http.StatusInternalServerError, "error while saving form.")
 	}
@@ -43,7 +43,7 @@ func (h Handler) Registration(c echo.Context) error {
 
 // Authentication method checks user password and if it ok returns access and refresh tokens
 func (h Handler) Authentication(c echo.Context) error {
-	authUser, err := h.rps.GetAuthUser(c.QueryParam("email"))
+	authUser, err := h.rps.GetAuthUser(c.QueryParam("email"), c.Request().Context())
 	if err != nil {
 		return c.String(http.StatusBadRequest, "incorrect email")
 	}
@@ -55,7 +55,7 @@ func (h Handler) Authentication(c echo.Context) error {
 	if authUser.Password != hashedLoginPassword {
 		return c.String(http.StatusBadRequest, "incorrect password")
 	}
-	accessTokenString, refreshTokenString, err := h.createTokenPair(authUser)
+	accessTokenString, refreshTokenString, err := h.createTokenPair(authUser, c)
 	if err != nil {
 		return c.String(http.StatusInternalServerError, fmt.Sprintln(err))
 	}
@@ -91,14 +91,14 @@ func (h Handler) RefreshToken(c echo.Context) error {
 	if userUUID == "" {
 		return c.String(http.StatusInternalServerError, "error while parsing token.")
 	}
-	authUser, err := h.rps.GetAuthUserByID(userUUID.(string))
+	authUser, err := h.rps.GetAuthUserByID(userUUID.(string), c.Request().Context())
 	if err != nil {
 		return c.String(http.StatusInternalServerError, "error while parsing token")
 	}
 	if refreshTokenString != authUser.RefreshToken {
 		return c.String(http.StatusBadRequest, "invalid refresh token")
 	}
-	newAccessTokenString, newRefreshTokenString, err := h.createTokenPair(authUser)
+	newAccessTokenString, newRefreshTokenString, err := h.createTokenPair(authUser, c)
 	if err != nil {
 		return c.String(http.StatusInternalServerError, "error while creating tokens")
 	}
@@ -118,14 +118,14 @@ func (h Handler) Logout(c echo.Context) error {
 	if email == "" {
 		return c.String(http.StatusBadRequest, "Empty value")
 	}
-	err := h.rps.UpdateAuthUser(email, "")
+	err := h.rps.UpdateAuthUser(email, "", c.Request().Context())
 	if err != nil {
 		return c.String(http.StatusInternalServerError, "logout error.")
 	}
 	return c.String(http.StatusOK, "logout successfully")
 }
 
-func (h Handler) createTokenPair(authUser repository.RegistrationForm) (string, string, error) {
+func (h Handler) createTokenPair(authUser repository.RegistrationForm, ctx echo.Context) (string, string, error) {
 	expirationTimeAT := time.Now().Add(15 * time.Minute)
 	expirationTimeRT := time.Now().Add(time.Hour * 720)
 
@@ -158,7 +158,7 @@ func (h Handler) createTokenPair(authUser repository.RegistrationForm) (string, 
 		return "", "", fmt.Errorf("error while creating token")
 	}
 
-	err = h.rps.UpdateAuthUser(authUser.Email, refreshTokenString)
+	err = h.rps.UpdateAuthUser(authUser.Email, refreshTokenString, ctx.Request().Context())
 	if err != nil {
 		authOperationError(err, "Authentication()")
 		return "", "", fmt.Errorf("error while creating token")

@@ -14,8 +14,8 @@ type PostgresRepository struct {
 }
 
 // CreateUser save User object into postgresql database
-func (rps PostgresRepository) CreateUser(u User) error {
-	result, err := rps.DBconn.Exec(context.Background(), "insert into users (userName, userAge, isAdult) "+
+func (rps PostgresRepository) CreateUser(u User, ctx context.Context) error {
+	result, err := rps.DBconn.Exec(ctx, "insert into users (userName, userAge, isAdult) "+
 		"values ($1, $2, $3)", u.UserName, u.UserAge, u.IsAdult)
 	if err != nil {
 		postgresOperationError(err, "CreateUser()")
@@ -27,9 +27,9 @@ func (rps PostgresRepository) CreateUser(u User) error {
 
 // ReadUser returns User object from postgresql database
 // with selection by UserId
-func (rps PostgresRepository) ReadUser(u string) (User, error) {
+func (rps PostgresRepository) ReadUser(u string, ctx context.Context) (User, error) {
 	var user User
-	err := rps.DBconn.QueryRow(context.Background(), "select userName, userAge, isAdult from users "+
+	err := rps.DBconn.QueryRow(ctx, "select userName, userAge, isAdult from users "+
 		"where userId=$1", u).Scan(&user.UserName, &user.UserAge, &user.IsAdult)
 	if err != nil {
 		postgresOperationError(err, "ReadUser()")
@@ -41,8 +41,8 @@ func (rps PostgresRepository) ReadUser(u string) (User, error) {
 
 // UpdateUser update User object from postgresql database
 // with selection by UserId
-func (rps PostgresRepository) UpdateUser(u User) error {
-	result, err := rps.DBconn.Exec(context.Background(), "update users "+
+func (rps PostgresRepository) UpdateUser(u User, ctx context.Context) error {
+	result, err := rps.DBconn.Exec(ctx, "update users "+
 		"set userName=$2, userAge=$3, isAdult=$4"+
 		"where userid=$1", u.UserID, u.UserName, u.UserAge, u.IsAdult)
 
@@ -56,8 +56,8 @@ func (rps PostgresRepository) UpdateUser(u User) error {
 
 // DeleteUser delete User object from postgresql database
 // with selection by UserId
-func (rps PostgresRepository) DeleteUser(userID string) error {
-	result, err := rps.DBconn.Exec(context.Background(), "delete from users where userId=$1", userID)
+func (rps PostgresRepository) DeleteUser(userID string, ctx context.Context) error {
+	result, err := rps.DBconn.Exec(ctx, "delete from users where userId=$1", userID)
 	if err != nil {
 		postgresOperationError(err, "DeleteUser()")
 		return err
@@ -68,9 +68,9 @@ func (rps PostgresRepository) DeleteUser(userID string) error {
 
 // CreateAuthUser method saves authentication info about user into
 // postgres database
-func (rps PostgresRepository) CreateAuthUser(lf RegistrationForm) error {
+func (rps PostgresRepository) CreateAuthUser(lf RegistrationForm, ctx context.Context) error {
 	fmt.Println(lf)
-	result, err := rps.DBconn.Exec(context.Background(), "insert into authusers (username, email, password)"+
+	result, err := rps.DBconn.Exec(ctx, "insert into authusers (username, email, password)"+
 		"values($1, $2, $3)", lf.UserName, lf.Email, lf.Password)
 	if err != nil {
 		postgresOperationError(err, "CreateAuthUser()")
@@ -82,9 +82,9 @@ func (rps PostgresRepository) CreateAuthUser(lf RegistrationForm) error {
 
 // GetAuthUser method returns authentication info about user from
 // postgres database with selection by email
-func (rps PostgresRepository) GetAuthUser(email string) (RegistrationForm, error) {
+func (rps PostgresRepository) GetAuthUser(email string, ctx context.Context) (RegistrationForm, error) {
 	var authUser RegistrationForm
-	err := rps.DBconn.QueryRow(context.Background(), "select useruuid, username, email, password from authusers "+
+	err := rps.DBconn.QueryRow(ctx, "select useruuid, username, email, password from authusers "+
 		"where email=$1", email).Scan(&authUser.UserUUID, &authUser.UserName, &authUser.Email, &authUser.Password)
 	if err != nil {
 		postgresOperationError(err, "GetAuthUser()")
@@ -96,9 +96,9 @@ func (rps PostgresRepository) GetAuthUser(email string) (RegistrationForm, error
 
 // GetAuthUserByID method returns authentication info about user from
 // postgres database with selection by id
-func (rps PostgresRepository) GetAuthUserByID(userUUID string) (RegistrationForm, error) {
+func (rps PostgresRepository) GetAuthUserByID(userUUID string, ctx context.Context) (RegistrationForm, error) {
 	var authUser RegistrationForm
-	err := rps.DBconn.QueryRow(context.Background(), "select useruuid, username, email, password, refreshtoken from authusers "+
+	err := rps.DBconn.QueryRow(ctx, "select useruuid, username, email, password, refreshtoken from authusers "+
 		"where useruuid=$1", userUUID).Scan(&authUser.UserUUID, &authUser.UserName, &authUser.Email, &authUser.Password, &authUser.RefreshToken)
 	if err != nil {
 		postgresOperationError(err, "GetAuthUserByID()")
@@ -109,8 +109,8 @@ func (rps PostgresRepository) GetAuthUserByID(userUUID string) (RegistrationForm
 }
 
 // UpdateAuthUser is method to set refresh token into authuser info
-func (rps PostgresRepository) UpdateAuthUser(email, refreshToken string) error {
-	result, err := rps.DBconn.Exec(context.Background(), "update authusers "+
+func (rps PostgresRepository) UpdateAuthUser(email, refreshToken string, ctx context.Context) error {
+	result, err := rps.DBconn.Exec(ctx, "update authusers "+
 		"set refreshtoken=$2"+
 		"where email=$1", email, refreshToken)
 	if err != nil {

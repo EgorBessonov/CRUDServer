@@ -29,7 +29,6 @@ func NewHandler(_rps repository.Repository) *Handler {
 func (h Handler) SaveUser(c echo.Context) error {
 	user := repository.User{}
 	err := json.NewDecoder(c.Request().Body).Decode(&user)
-	fmt.Println(user)
 	err = h.rps.CreateUser(c.Request().Context(), user)
 	if err != nil {
 		return c.String(http.StatusInternalServerError, fmt.Sprintln("Error while adding User to db."))

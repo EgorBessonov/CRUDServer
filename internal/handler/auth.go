@@ -2,9 +2,11 @@ package handler
 
 import (
 	"CRUDServer/internal/repository"
+	"CRUDServer/internal/service"
 	"context"
 	"crypto/sha256"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/golang-jwt/jwt"
@@ -24,21 +26,12 @@ type CustomClaims struct {
 
 // Registration method is echo authentication method(POST) for creating user
 func (h Handler) Registration(c echo.Context) error {
-	hashedPassword, err := hashPassword(c.QueryParam("password"))
-	if err != nil {
-		authOperationError(err, "Registration()")
-		return c.String(http.StatusInternalServerError, "registration failed.")
-	}
-
-	err = h.rps.CreateAuthUser(c.Request().Context(), repository.RegistrationForm{
-		UserName: c.QueryParam("userName"),
-		Email:    c.QueryParam("email"),
-		Password: hashedPassword,
-	})
+	regForm := repository.RegistrationForm{}
+	err := json.NewDecoder(c.Request().Body).Decode(&regForm)
+	err = service.Registration(regForm, h.rps, c.Request().Context())
 	if err != nil {
 		return c.String(http.StatusInternalServerError, "error while saving form.")
 	}
-
 	return c.String(http.StatusOK, "successfully.")
 }
 

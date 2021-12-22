@@ -1,10 +1,8 @@
 FROM golang:latest
 
 ENV GOROOT  /usr/local/go
-ENV GOPATH /go
+
 WORKDIR /go/src/CRUDServer
-
-
 
 COPY go.mod ./
 COPY go.sum ./

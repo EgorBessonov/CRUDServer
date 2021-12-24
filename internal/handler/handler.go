@@ -2,6 +2,7 @@
 package handler
 
 import (
+	"CRUDServer/internal/models"
 	"CRUDServer/internal/repository"
 	"CRUDServer/internal/service"
 	"errors"
@@ -26,24 +27,24 @@ func NewHandler(_rps repository.Repository) *Handler {
 	return &h
 }
 
-// SaveUser is echo handler(POST) which return creation status and UserId
-func (h Handler) SaveUser(c echo.Context) error {
-	user := repository.User{}
-	if err := (&echo.DefaultBinder{}).BindBody(c, &user); err != nil {
+// SaveOrder is echo handler(POST) which return creation status and UserId
+func (h Handler) SaveOrder(c echo.Context) error {
+	order := models.Order{}
+	if err := (&echo.DefaultBinder{}).BindBody(c, &order); err != nil {
 		handlerOperationError(errors.New("error while parsing json"), "Authentication()")
 		return c.String(http.StatusInternalServerError, "error while parsing json")
 	}
-	err := service.Save(c.Request().Context(), h.rps,user)
+	err := service.Save(c.Request().Context(), h.rps, order)
 	if err != nil {
 		return c.String(http.StatusInternalServerError, fmt.Sprintln("Error while adding User to db."))
 	}
 	return c.String(http.StatusOK, fmt.Sprintln("successfully added."))
 }
 
-// GetUserByID is echo handler(GET) which returns json structure of User object
-func (h Handler) GetUserByID(c echo.Context) error {
+// GetOrderByID is echo handler(GET) which returns json structure of User object
+func (h Handler) GetOrderByID(c echo.Context) error {
 	userID := c.QueryParam("userId")
-	user, err := service.Get(c.Request().Context(), h.rps, userID)
+	order, err := service.Get(c.Request().Context(), h.rps, userID)
 	if err != nil {
 		return c.String(http.StatusInternalServerError, fmt.Sprintln("error while reading."))
 	}
@@ -51,32 +52,32 @@ func (h Handler) GetUserByID(c echo.Context) error {
 		http.StatusOK,
 		[]byte(
 			fmt.Sprintf(`{
-					"userName" : %v,
-					"userAge" : %v,
-					"isAdult" : %v}`, user.UserName, user.UserAge, userID),
+					"orderName" : %v,
+					"orderCost" : %v,
+					"isDelivered" : %v}`, order.OrderName, order.OrderCost, order.IsDelivered),
 		),
 	)
 }
 
-// DeleteUserByID is echo handler(DELETE) which return deletion status
-func (h Handler) DeleteUserByID(c echo.Context) error {
-	userID := c.QueryParam("userId")
-	fmt.Println(userID)
-	err := service.Delete(c.Request().Context(), h.rps, userID)
+// DeleteOrderByID is echo handler(DELETE) which return deletion status
+func (h Handler) DeleteOrderByID(c echo.Context) error {
+	orderID := c.QueryParam("orderID")
+	fmt.Println(orderID)
+	err := service.Delete(c.Request().Context(), h.rps, orderID)
 	if err != nil {
 		return c.String(http.StatusInternalServerError, fmt.Sprintln("error while deleting."))
 	}
-	return c.String(http.StatusOK, fmt.Sprintln("successfully deleted."))
+	return c.String(http.StatusOK, fmt.Sprintln("successfully updated."))
 }
 
-// UpdateUserByID is echo handler(PUT) which return updating status
-func (h Handler) UpdateUserByID(c echo.Context) error {
-	user := repository.User{}
-	if err := (&echo.DefaultBinder{}).BindBody(c, &user); err != nil {
+// UpdateOrderByID is echo handler(PUT) which return updating status
+func (h Handler) UpdateOrderByID(c echo.Context) error {
+	order := models.Order{}
+	if err := (&echo.DefaultBinder{}).BindBody(c, &order); err != nil {
 		handlerOperationError(errors.New("error while parsing json"), "Registration()")
 		return c.String(http.StatusInternalServerError, "error while parsing json")
 	}
-	err := service.Update(c.Request().Context(), h.rps, user)
+	err := service.Update(c.Request().Context(), h.rps, order)
 	if err != nil {
 		return c.String(http.StatusInternalServerError, fmt.Sprintln("error while updating user"))
 	}

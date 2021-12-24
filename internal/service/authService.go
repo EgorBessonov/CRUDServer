@@ -1,18 +1,25 @@
+// Package service replies server logic
 package service
 
 import (
+	"CRUDServer/internal/models"
 	"CRUDServer/internal/repository"
 	"context"
 	"crypto/sha256"
 	"encoding/base64"
-	"github.com/golang-jwt/jwt"
 	"errors"
-	log "github.com/sirupsen/logrus"
 	"fmt"
-	"time"
 	"os"
+	"time"
+
+	"github.com/golang-jwt/jwt"
+	log "github.com/sirupsen/logrus"
 )
 
+const(
+	accessTokenExTime = 15
+	refreshTokenExTime = 720
+)
 // CustomClaims struct represent user information in tokens
 type CustomClaims struct {
 	email    string
@@ -20,13 +27,13 @@ type CustomClaims struct {
 	jwt.StandardClaims
 }
 
-func Registration( ctx context.Context, rps repository.Repository, form *repository.RegistrationForm) error {
-	hPassword, err := hashPassword(form.Password, "Registration()")
+func Registration( ctx context.Context, rps repository.Repository, authUser *models.AuthUser) error {
+	hPassword, err := hashPassword(authUser.Password, "Registration()")
 	if err != nil {
 		return err
 	}
-	form.Password = hPassword
-	err = rps.CreateAuthUser(ctx, form)
+	authUser.Password = hPassword
+	err = rps.CreateAuthUser(ctx, authUser)
 	if err != nil {
 		return err
 	}
@@ -63,7 +70,7 @@ func RefreshToken(ctx context.Context, rps repository.Repository, refreshTokenSt
 	return createTokenPair(rps, ctx, &authUser)
 }
 
-func Authentication(ctx context.Context, rps repository.Repository, form *repository.RegistrationForm)(string, string, error){
+func Authentication(ctx context.Context, rps repository.Repository, form *models.AuthUser)(string, string, error){
 	hashPassword, err := hashPassword(form.Password, "Authentication()")
 	if err != nil{
 		return "", "", err
@@ -79,9 +86,9 @@ func Authentication(ctx context.Context, rps repository.Repository, form *reposi
 	return  createTokenPair(rps, ctx, &authForm)
 }
 
-func createTokenPair(rps repository.Repository,ctx context.Context, authUser *repository.RegistrationForm) (string, string, error) {
-	expirationTimeAT := time.Now().Add(15 * time.Minute)
-	expirationTimeRT := time.Now().Add(time.Hour * 720)
+func createTokenPair(rps repository.Repository,ctx context.Context, authUser *models.AuthUser) (string, string, error) {
+	expirationTimeAT := time.Now().Add(accessTokenExTime * time.Minute)
+	expirationTimeRT := time.Now().Add(time.Hour * refreshTokenExTime)
 
 	atClaims := &CustomClaims{
 		userName: authUser.UserName,

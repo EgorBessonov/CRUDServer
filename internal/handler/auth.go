@@ -1,18 +1,19 @@
 package handler
 
 import (
-	"CRUDServer/internal/repository"
+	"CRUDServer/internal/models"
 	"CRUDServer/internal/service"
 	"errors"
 	"fmt"
+	"net/http"
+
 	"github.com/labstack/echo/v4"
 	log "github.com/sirupsen/logrus"
-	"net/http"
 )
 
 // Registration method is echo authentication method(POST) for creating user
 func (h Handler) Registration(c echo.Context) error {
-	regForm := repository.RegistrationForm{}
+	regForm := models.AuthUser{}
 	if err := (&echo.DefaultBinder{}).BindBody(c, &regForm); err != nil {
 		handlerOperationError(errors.New("error while parsing json"), "Registration()")
 		return c.String(http.StatusInternalServerError, "error while parsing json")
@@ -26,7 +27,7 @@ func (h Handler) Registration(c echo.Context) error {
 
 // Authentication method checks user password and if it ok returns access and refresh tokens
 func (h Handler) Authentication(c echo.Context) error {
-	authForm := repository.RegistrationForm{}
+	authForm := models.AuthUser{}
 	if err := (&echo.DefaultBinder{}).BindBody(c, &authForm); err != nil {
 		handlerOperationError(errors.New("error while parsing json"), "Authentication()")
 		return c.String(http.StatusInternalServerError, "error while parsing json")
@@ -85,7 +86,6 @@ func (h Handler) Logout(c echo.Context) error {
 	})
 	return c.String(http.StatusOK, "logout successfully")
 }
-
 
 func authOperationError(err error, method string) {
 	log.WithFields(log.Fields{

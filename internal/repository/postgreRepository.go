@@ -1,8 +1,10 @@
 package repository
 
 import (
+	"CRUDServer/internal/models"
 	"context"
 	"fmt"
+
 	"github.com/jackc/pgconn"
 	"github.com/jackc/pgx/v4/pgxpool"
 	log "github.com/sirupsen/logrus"
@@ -13,62 +15,61 @@ type PostgresRepository struct {
 	DBconn *pgxpool.Pool
 }
 
-// CreateUser save User object into postgresql database
-func (rps PostgresRepository) CreateUser(ctx context.Context, u User) error {
-	result, err := rps.DBconn.Exec(ctx, "insert into users (userName, userAge, isAdult) "+
-		"values ($1, $2, $3)", u.UserName, u.UserAge, u.IsAdult)
+// Create save Order object into postgresql database
+func (rps PostgresRepository) Create(ctx context.Context, u models.Order) error {
+	result, err := rps.DBconn.Exec(ctx, "insert into orders (orderName, orderCost, isDelivered) "+
+		"values ($1, $2, $3)", u.OrderName, u.OrderCost, u.IsDelivered)
 	if err != nil {
-		postgresOperationError(err, "CreateUser()")
+		postgresOperationError(err, "Create()")
 		return err
 	}
-	postgresOperationSuccess(result, "CreateUser()")
+	postgresOperationSuccess(result, "Create()")
 	return nil
 }
 
-// ReadUser returns User object from postgresql database
-// with selection by UserId
-func (rps PostgresRepository) ReadUser(ctx context.Context, u string) (User, error) {
-	var user User
-	err := rps.DBconn.QueryRow(ctx, "select userName, userAge, isAdult from users "+
-		"where userId=$1", u).Scan(&user.UserName, &user.UserAge, &user.IsAdult)
+// Read returns Order object from postgresql database
+// with selection by OrderID
+func (rps PostgresRepository) Read(ctx context.Context, orderID string) (models.Order, error) {
+	var order models.Order
+	err := rps.DBconn.QueryRow(ctx, "select orderName, orderCost, isDelivered from orders "+
+		"where orderID=$1", orderID).Scan(&order.OrderName, &order.OrderCost, &order.IsDelivered)
 	if err != nil {
-		postgresOperationError(err, "ReadUser()")
-		return User{}, err
+		postgresOperationError(err, "Read()")
+		return models.Order{}, err
 	}
-	postgresOperationSuccess(nil, "ReadUser()")
-	return user, nil
+	postgresOperationSuccess(nil, "Read()")
+	return order, nil
 }
 
-// UpdateUser update User object from postgresql database
-// with selection by UserId
-func (rps PostgresRepository) UpdateUser(ctx context.Context, u User) error {
-	result, err := rps.DBconn.Exec(ctx, "update users "+
-		"set userName=$2, userAge=$3, isAdult=$4"+
-		"where userid=$1", u.UserID, u.UserName, u.UserAge, u.IsAdult)
-
+// Update update Order object from postgresql database
+// with selection by OrderID
+func (rps PostgresRepository) Update(ctx context.Context, ord models.Order) error {
+	result, err := rps.DBconn.Exec(ctx, "update orders "+
+		"set orderName=$2, orderCost=$3, isDelivered=$4"+
+		"where orderID=$1", ord.OrderID, ord.OrderName, ord.OrderCost, ord.IsDelivered)
 	if err != nil {
-		postgresOperationError(err, "UpdateUser()")
+		postgresOperationError(err, "Update()")
 		return err
 	}
-	postgresOperationSuccess(result, "UpdateUser()")
+	postgresOperationSuccess(result, "Update()")
 	return nil
 }
 
-// DeleteUser delete User object from postgresql database
-// with selection by UserId
-func (rps PostgresRepository) DeleteUser(ctx context.Context, userID string) error {
-	result, err := rps.DBconn.Exec(ctx, "delete from users where userId=$1", userID)
+// Delete delete Order object from postgresql database
+// with selection by OrderID
+func (rps PostgresRepository) Delete(ctx context.Context, orderID string) error {
+	result, err := rps.DBconn.Exec(ctx, "delete from orders where orderID=$1", orderID)
 	if err != nil {
-		postgresOperationError(err, "DeleteUser()")
+		postgresOperationError(err, "Delete()")
 		return err
 	}
-	postgresOperationSuccess(result, "DeleteUser()")
+	postgresOperationSuccess(result, "Delete()")
 	return nil
 }
 
 // CreateAuthUser method saves authentication info about user into
 // postgres database
-func (rps PostgresRepository) CreateAuthUser(ctx context.Context, lf *RegistrationForm) error {
+func (rps PostgresRepository) CreateAuthUser(ctx context.Context, lf *models.AuthUser) error {
 	fmt.Println(lf)
 	result, err := rps.DBconn.Exec(ctx, "insert into authusers (username, email, password)"+
 		"values($1, $2, $3)", lf.UserName, lf.Email, lf.Password)
@@ -82,13 +83,13 @@ func (rps PostgresRepository) CreateAuthUser(ctx context.Context, lf *Registrati
 
 // GetAuthUser method returns authentication info about user from
 // postgres database with selection by email
-func (rps PostgresRepository) GetAuthUser(ctx context.Context, email string) (RegistrationForm, error) {
-	var authUser RegistrationForm
+func (rps PostgresRepository) GetAuthUser(ctx context.Context, email string) (models.AuthUser, error) {
+	var authUser models.AuthUser
 	err := rps.DBconn.QueryRow(ctx, "select useruuid, username, email, password from authusers "+
 		"where email=$1", email).Scan(&authUser.UserUUID, &authUser.UserName, &authUser.Email, &authUser.Password)
 	if err != nil {
 		postgresOperationError(err, "GetAuthUser()")
-		return RegistrationForm{}, err
+		return models.AuthUser{}, err
 	}
 	postgresOperationSuccess(nil, "GetAuthUser()")
 	return authUser, nil
@@ -96,13 +97,13 @@ func (rps PostgresRepository) GetAuthUser(ctx context.Context, email string) (Re
 
 // GetAuthUserByID method returns authentication info about user from
 // postgres database with selection by id
-func (rps PostgresRepository) GetAuthUserByID(ctx context.Context, userUUID string) (RegistrationForm, error) {
-	var authUser RegistrationForm
+func (rps PostgresRepository) GetAuthUserByID(ctx context.Context, userUUID string) (models.AuthUser, error) {
+	var authUser models.AuthUser
 	err := rps.DBconn.QueryRow(ctx, "select useruuid, username, email, password, refreshtoken from authusers "+
 		"where useruuid=$1", userUUID).Scan(&authUser.UserUUID, &authUser.UserName, &authUser.Email, &authUser.Password, &authUser.RefreshToken)
 	if err != nil {
 		postgresOperationError(err, "GetAuthUserByID()")
-		return RegistrationForm{}, err
+		return models.AuthUser{}, err
 	}
 	postgresOperationSuccess(nil, "GetAuthUserByID()")
 	return authUser, nil

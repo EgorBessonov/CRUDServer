@@ -1,12 +1,18 @@
 package repository
 
 import (
+	"CRUDServer/internal/models"
 	"context"
+	"time"
+
 	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
-	"time"
+)
+
+const (
+	timeout = 10
 )
 
 // MongoRepository type replies for accessing to mongo database
@@ -14,96 +20,95 @@ type MongoRepository struct {
 	DBconn *mongo.Client
 }
 
-// CreateUser method saves User object into mongo database
-func (rps MongoRepository) CreateUser(ctx context.Context, u User) error {
+// Create method saves User object into mongo database
+func (rps MongoRepository) Create(ctx context.Context, u models.Order) error {
 	col := rps.DBconn.Database("crudserver").Collection("users")
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, timeout*time.Second)
 	defer cancel()
-
 	_, err := col.InsertOne(ctx, bson.D{
 		{Key: "_id", Value: uuid.New().String()},
-		{Key: "userName", Value: u.UserName},
-		{Key: "userAge", Value: u.UserAge},
-		{Key: "isAdult", Value: u.IsAdult},
+		{Key: "userName", Value: u.OrderName},
+		{Key: "userAge", Value: u.OrderCost},
+		{Key: "isAdult", Value: u.IsDelivered},
 	})
 	if err != nil {
-		mongoOperationError(err, "CreateUser()")
+		mongoOperationError(err, "Create()")
 		return err
 	}
-	mongoOperationSuccess("CreateUser()")
+	mongoOperationSuccess("Create()")
 	return nil
 }
 
-// ReadUser method returns User object from mongo database
+// Read method returns User object from mongo database
 // with selection by UserId
-func (rps MongoRepository) ReadUser(ctx context.Context, userID string) (User, error) {
+func (rps MongoRepository) Read(ctx context.Context, userID string) (models.Order, error) {
 	col := rps.DBconn.Database("crudserver").Collection("users")
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, timeout*time.Second)
 	defer cancel()
 
-	var rUser User
+	var rUser models.Order
 	err := col.FindOne(ctx, bson.D{{Key: "_id", Value: userID}}).Decode(&rUser)
 	if err != nil {
-		mongoOperationError(err, "ReadUser()")
-		return User{}, err
+		mongoOperationError(err, "Read()")
+		return models.Order{}, err
 	}
-	mongoOperationSuccess("ReadUser()")
+	mongoOperationSuccess("Read()")
 	return rUser, nil
 }
 
-// UpdateUser method updates User object from mongo database
+// Update method updates User object from mongo database
 // with selection by UserId
-func (rps MongoRepository) UpdateUser(ctx context.Context, u User) error {
+func (rps MongoRepository) Update(ctx context.Context, u models.Order) error {
 	col := rps.DBconn.Database("crudserver").Collection("users")
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, timeout*time.Second)
 	defer cancel()
 
-	_, err := col.UpdateOne(ctx, bson.D{{Key: "_id", Value: u.UserID}}, bson.D{
-		{Key: "userName", Value: u.UserName},
-		{Key: "userAge", Value: u.UserAge},
-		{Key: "isAdult", Value: u.IsAdult},
+	_, err := col.UpdateOne(ctx, bson.D{{Key: "_id", Value: u.OrderID}}, bson.D{
+		{Key: "userName", Value: u.OrderName},
+		{Key: "userAge", Value: u.OrderCost},
+		{Key: "isAdult", Value: u.IsDelivered},
 	})
 	if err != nil {
-		mongoOperationError(err, "UpdateUser()")
+		mongoOperationError(err, "Update()")
 		return err
 	}
-	mongoOperationSuccess("UpdateUser()")
+	mongoOperationSuccess("Update()")
 	return nil
 }
 
-// DeleteUser method deletes User object from mongo database
+// Delete method deletes User object from mongo database
 // with selection by UserId
-func (rps MongoRepository) DeleteUser(ctx context.Context, userID string) error {
+func (rps MongoRepository) Delete(ctx context.Context, userID string) error {
 	col := rps.DBconn.Database("crudserver").Collection("users")
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, timeout*time.Second)
 	defer cancel()
 
 	_, err := col.DeleteOne(ctx, bson.D{{Key: "_id", Value: userID}})
 	if err != nil {
-		mongoOperationError(err, "DeleteUser()")
+		mongoOperationError(err, "Delete()")
 		return err
 	}
-	mongoOperationSuccess("DeleteUser()")
+	mongoOperationSuccess("Delete()")
 	return nil
 }
 
 // GetAuthUser method returns authentication info about user from
 // mongo database with selection by email
-func (rps MongoRepository) GetAuthUser(ctx context.Context, email string) (RegistrationForm, error) {
-	return RegistrationForm{}, nil
+func (rps MongoRepository) GetAuthUser(ctx context.Context, email string) (models.AuthUser, error) {
+	return models.AuthUser{}, nil
 }
 
 // GetAuthUserByID method returns authentication info about user from
 // mongo database with selection by ID
-func (rps MongoRepository) GetAuthUserByID(ctx context.Context, userUUID string) (RegistrationForm, error) {
-	return RegistrationForm{}, nil
+func (rps MongoRepository) GetAuthUserByID(ctx context.Context, userUUID string) (models.AuthUser, error) {
+	return models.AuthUser{}, nil
 }
 
 // CreateAuthUser method saves authentication info about user into
 // postgres database
-func (rps MongoRepository) CreateAuthUser(ctx context.Context, lf *RegistrationForm) error {
+func (rps MongoRepository) CreateAuthUser(ctx context.Context, lf *models.AuthUser) error {
 	col := rps.DBconn.Database("crudserver").Collection("authusers")
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, timeout*time.Second)
 	defer cancel()
 
 	_, err := col.InsertOne(ctx, bson.D{

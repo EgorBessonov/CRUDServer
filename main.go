@@ -1,6 +1,7 @@
 package main
 
 import (
+	"CRUDServer/internal/configs"
 	"CRUDServer/internal/handler"
 	"CRUDServer/internal/repository"
 	"CRUDServer/internal/service"
@@ -10,7 +11,6 @@ import (
 
 	"github.com/caarlos0/env"
 	"github.com/jackc/pgx/v4/pgxpool"
-	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	log "github.com/sirupsen/logrus"
@@ -19,11 +19,7 @@ import (
 )
 
 func main() {
-	err := godotenv.Load("internal/configs/config.env")
-	if err != nil {
-		log.Fatal("Error while loading config.env file.")
-	}
-	cfg := repository.Config{
+	cfg := configs.Config{
 		CurrentDB:     os.Getenv("CURRENTDB"),
 		PostgresdbURL: os.Getenv("POSTGRESDB_URL"),
 		MongodbURL:    os.Getenv("MONGODB_URL"),
@@ -45,10 +41,10 @@ func main() {
 	}
 	g.Use(middleware.JWTWithConfig(config))
 
-	g.POST("/saveUser/", h.SaveUser)
-	g.PUT("/updateUser/", h.UpdateUserByID)
-	g.DELETE("/deleteUser/", h.DeleteUserByID)
-	g.GET("/getUser", h.GetUserByID)
+	g.POST("/saveOrder/", h.SaveOrder)
+	g.PUT("/updateOrder/", h.UpdateOrderByID)
+	g.DELETE("/deleteOrder/", h.DeleteOrderByID)
+	g.GET("/getOrder", h.GetOrderByID)
 
 	e.POST("registration/", h.Registration)
 	e.POST("authentication/", h.Authentication)
@@ -61,7 +57,7 @@ func main() {
 	e.Logger.Fatal(e.Start(":8081"))
 }
 
-func dbConnection(cfg repository.Config) repository.Repository {
+func dbConnection(cfg configs.Config) repository.Repository {
 	switch cfg.CurrentDB {
 	case "mongo":
 		client, err := mongo.Connect(context.Background(), options.Client().ApplyURI(cfg.MongodbURL))

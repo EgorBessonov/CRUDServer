@@ -35,7 +35,7 @@ type Repository interface {
 	ReadUser(context.Context, string) (User, error)
 	UpdateUser(context.Context, User) error
 	DeleteUser(context.Context, string) error
-	CreateAuthUser(context.Context, RegistrationForm) error
+	CreateAuthUser(context.Context, *RegistrationForm) error
 	GetAuthUser(context.Context, string) (RegistrationForm, error)
 	GetAuthUserByID(context.Context, string) (RegistrationForm, error)
 	UpdateAuthUser(ctx context.Context, email, refreshToken string) error

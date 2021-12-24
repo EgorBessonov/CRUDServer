@@ -101,7 +101,7 @@ func (rps MongoRepository) GetAuthUserByID(ctx context.Context, userUUID string)
 
 // CreateAuthUser method saves authentication info about user into
 // postgres database
-func (rps MongoRepository) CreateAuthUser(ctx context.Context, lf RegistrationForm) error {
+func (rps MongoRepository) CreateAuthUser(ctx context.Context, lf *RegistrationForm) error {
 	col := rps.DBconn.Database("crudserver").Collection("authusers")
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()

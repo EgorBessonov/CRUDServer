@@ -3,8 +3,11 @@ package main
 import (
 	"CRUDServer/internal/handler"
 	"CRUDServer/internal/repository"
+	"CRUDServer/internal/service"
 	"context"
 	"fmt"
+	"os"
+
 	"github.com/caarlos0/env"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/joho/godotenv"
@@ -13,7 +16,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"os"
 )
 
 func main() {
@@ -38,7 +40,7 @@ func main() {
 
 	g := e.Group("/users")
 	config := middleware.JWTConfig{
-		Claims:     &handler.CustomClaims{},
+		Claims:     &service.CustomClaims{},
 		SigningKey: []byte(cfg.SecretKey),
 	}
 	g.Use(middleware.JWTWithConfig(config))

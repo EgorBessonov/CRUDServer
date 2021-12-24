@@ -3,32 +3,21 @@ package handler
 import (
 	"CRUDServer/internal/repository"
 	"CRUDServer/internal/service"
-	"context"
-	"crypto/sha256"
-	"encoding/base64"
-	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/golang-jwt/jwt"
 	"github.com/labstack/echo/v4"
 	log "github.com/sirupsen/logrus"
 	"net/http"
-	"os"
-	"time"
 )
-
-// CustomClaims struct represent user information in tokens
-type CustomClaims struct {
-	email    string
-	userName string
-	jwt.StandardClaims
-}
 
 // Registration method is echo authentication method(POST) for creating user
 func (h Handler) Registration(c echo.Context) error {
 	regForm := repository.RegistrationForm{}
-	err := json.NewDecoder(c.Request().Body).Decode(&regForm)
-	err = service.Registration(regForm, h.rps, c.Request().Context())
+	if err := (&echo.DefaultBinder{}).BindBody(c, &regForm); err != nil {
+		handlerOperationError(errors.New("error while parsing json"), "Registration()")
+		return c.String(http.StatusInternalServerError, "error while parsing json")
+	}
+	err := service.Registration(c.Request().Context(), h.rps, &regForm)
 	if err != nil {
 		return c.String(http.StatusInternalServerError, "error while saving form.")
 	}
@@ -37,22 +26,12 @@ func (h Handler) Registration(c echo.Context) error {
 
 // Authentication method checks user password and if it ok returns access and refresh tokens
 func (h Handler) Authentication(c echo.Context) error {
-	authUser, err := h.rps.GetAuthUser(c.Request().Context(), c.QueryParam("email"))
-	if err != nil {
-		authOperationError(errors.New("invalid email"), "Authentication()")
-		return c.String(http.StatusBadRequest, "incorrect email")
+	authForm := repository.RegistrationForm{}
+	if err := (&echo.DefaultBinder{}).BindBody(c, &authForm); err != nil {
+		handlerOperationError(errors.New("error while parsing json"), "Authentication()")
+		return c.String(http.StatusInternalServerError, "error while parsing json")
 	}
-	hashedLoginPassword, err := hashPassword(c.QueryParam("password"))
-	if err != nil {
-		authOperationError(errors.New("hash password error"), "Authentication()")
-		return c.String(http.StatusInternalServerError, "login failed, try again")
-	}
-
-	if authUser.Password != hashedLoginPassword {
-		authOperationError(errors.New("invalid password"), "Authentication()")
-		return c.String(http.StatusBadRequest, "invalid password")
-	}
-	accessTokenString, refreshTokenString, err := h.createTokenPair(c.Request().Context(), authUser)
+	accessTokenString, refreshTokenString, err := service.Authentication(c.Request().Context(), h.rps, &authForm)
 	if err != nil {
 		return c.String(http.StatusInternalServerError, fmt.Sprintln(err))
 	}
@@ -73,33 +52,7 @@ func (h Handler) RefreshToken(c echo.Context) error {
 		authOperationError(errors.New("empty refresh token"), "RefreshToken()")
 		return c.String(http.StatusBadRequest, "empty refresh token.")
 	}
-	keyFunc := func(t *jwt.Token) (interface{}, error) {
-		return []byte(os.Getenv("SECRETKEY")), nil
-	}
-	refreshToken, err := jwt.Parse(refreshTokenString, keyFunc)
-	if err != nil {
-		authOperationError(err, "RefreshToken()")
-		return c.String(http.StatusInternalServerError, "error while parsing token.")
-	}
-	if !refreshToken.Valid {
-		authOperationError(errors.New("invalid token"), "RefreshToken()")
-		return c.String(http.StatusNonAuthoritativeInfo, "invalid token.")
-	}
-	claims := refreshToken.Claims.(jwt.MapClaims)
-	userUUID := claims["jti"]
-	if userUUID == "" {
-		authOperationError(errors.New("error while parsing token claims"), "refreshToken()")
-		return c.String(http.StatusInternalServerError, "error while parsing token.")
-	}
-	authUser, err := h.rps.GetAuthUserByID(c.Request().Context(), userUUID.(string))
-	if err != nil {
-		return c.String(http.StatusInternalServerError, "error while parsing token")
-	}
-	if refreshTokenString != authUser.RefreshToken {
-		authOperationError(errors.New("invalid refresh token"), "RefreshToken()")
-		return c.String(http.StatusBadRequest, "invalid refresh token")
-	}
-	newAccessTokenString, newRefreshTokenString, err := h.createTokenPair(c.Request().Context(), authUser)
+	newAccessTokenString, newRefreshTokenString, err := service.RefreshToken(c.Request().Context(), h.rps, refreshTokenString)
 	if err != nil {
 		authOperationError(errors.New("error while creating token"), "RefreshToken()")
 		return c.String(http.StatusInternalServerError, "error while creating tokens")
@@ -133,60 +86,6 @@ func (h Handler) Logout(c echo.Context) error {
 	return c.String(http.StatusOK, "logout successfully")
 }
 
-func (h Handler) createTokenPair(ctx context.Context, authUser repository.RegistrationForm) (string, string, error) {
-	expirationTimeAT := time.Now().Add(15 * time.Minute)
-	expirationTimeRT := time.Now().Add(time.Hour * 720)
-
-	atClaims := &CustomClaims{
-		userName: authUser.UserName,
-		email:    authUser.Email,
-		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: expirationTimeAT.Unix(),
-		},
-	}
-	accessToken := jwt.NewWithClaims(jwt.SigningMethodHS256, atClaims)
-	accessTokenString, err := accessToken.SignedString([]byte(os.Getenv("SECRETKEY")))
-	if err != nil {
-		authOperationError(err, "Authentication()")
-		return "", "", fmt.Errorf("error while creating token")
-	}
-
-	rtClaims := &CustomClaims{
-		userName: authUser.UserName,
-		email:    authUser.Email,
-		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: expirationTimeRT.Unix(),
-			Id:        authUser.UserUUID,
-		},
-	}
-	refreshToken := jwt.NewWithClaims(jwt.SigningMethodHS256, rtClaims)
-	refreshTokenString, err := refreshToken.SignedString([]byte(os.Getenv("SECRETKEY")))
-	if err != nil {
-		authOperationError(err, "Authentication()")
-		return "", "", fmt.Errorf("error while creating token")
-	}
-
-	err = h.rps.UpdateAuthUser(ctx, authUser.Email, refreshTokenString)
-	if err != nil {
-		authOperationError(err, "Authentication()")
-		return "", "", fmt.Errorf("error while creating token")
-	}
-	return accessTokenString, refreshTokenString, nil
-}
-
-func hashPassword(password string) (string, error) {
-	if password == "" {
-		log.WithFields(log.Fields{
-			"method": "hashPassword()",
-			"err":    errors.New("no input supplied"),
-		}).Info("Authentication info.")
-		return "", errors.New("no input supplied")
-	}
-	h := sha256.New()
-	h.Write([]byte(password))
-	hashedPassword := base64.URLEncoding.EncodeToString(h.Sum(nil))
-	return hashedPassword, nil
-}
 
 func authOperationError(err error, method string) {
 	log.WithFields(log.Fields{

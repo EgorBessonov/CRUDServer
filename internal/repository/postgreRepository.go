@@ -68,7 +68,7 @@ func (rps PostgresRepository) DeleteUser(ctx context.Context, userID string) err
 
 // CreateAuthUser method saves authentication info about user into
 // postgres database
-func (rps PostgresRepository) CreateAuthUser(ctx context.Context, lf RegistrationForm) error {
+func (rps PostgresRepository) CreateAuthUser(ctx context.Context, lf *RegistrationForm) error {
 	fmt.Println(lf)
 	result, err := rps.DBconn.Exec(ctx, "insert into authusers (username, email, password)"+
 		"values($1, $2, $3)", lf.UserName, lf.Email, lf.Password)

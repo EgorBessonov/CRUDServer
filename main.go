@@ -7,6 +7,7 @@ import (
 	"CRUDServer/internal/service"
 	"context"
 	"fmt"
+	"github.com/go-redis/redis"
 
 	"github.com/caarlos0/env"
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -15,7 +16,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"github.com/go-redis/redis"
 )
 
 func main() {
@@ -24,25 +24,13 @@ func main() {
 		fmt.Println(err)
 	}
 	e := echo.New()
-	
-	_repository := dbConnection(cfg)
 
-	redisClient := redis.NewClient(&redis.Options{
-		Addr: cfg.RedisURL,
-	})
-	if _, err := redisClient.Ping().Result(); err != nil{
-		log.WithFields(log.Fields{
-			"status": "error while connection to redisdb",
-			"err": err,
-		}).Info("redis repository info.")
-	}else{
-		log.WithFields(log.Fields{
-			"status": "successfully connected to redisdb",
-		}).Info("redis repository info.")
-	}
+	_repository := dbConnection(cfg)
 	s := service.NewService(_repository)
-	h := handler.NewHandler(*s)
-	
+	redisClient := redisConnection(cfg)
+
+	h := handler.NewHandler(s, redisClient)
+
 	g := e.Group("/users")
 	c := e.Group("/cats")
 	config := middleware.JWTConfig{
@@ -103,4 +91,23 @@ func dbConnection(cfg configs.Config) repository.Repository {
 		"err":    "invalid config",
 	}).Info("repository info")
 	return nil
+}
+
+func redisConnection(cfg configs.Config) *redis.Client {
+	redisClient := redis.NewClient(&redis.Options{
+		Addr:     cfg.RedisURL,
+		Password: "",
+		DB:       0,
+	})
+	if _, err := redisClient.Ping().Result(); err != nil {
+		log.WithFields(log.Fields{
+			"status": "error while connection to redisdb",
+			"err":    err,
+		}).Info("redis repository info.")
+		return nil
+	}
+	log.WithFields(log.Fields{
+		"status": "successfully connected to redisdb",
+	}).Info("redis repository info.")
+	return redisClient
 }

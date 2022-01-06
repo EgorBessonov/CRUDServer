@@ -2,10 +2,12 @@
 package handler
 
 import (
+	"CRUDServer/internal/cache"
 	"CRUDServer/internal/model"
 	"CRUDServer/internal/service"
 	"errors"
 	"fmt"
+	"github.com/go-redis/redis"
 	"io"
 	"net/http"
 	"os"
@@ -16,13 +18,14 @@ import (
 
 // Handler type replies for handling echo server requests
 type Handler struct {
-	s service.Service
+	s    *service.Service
+	rCli *redis.Client
 }
 
 // NewHandler function create handler for working with
 // postgres or mongo database and initialize connection with this db
-func NewHandler(_s service.Service) *Handler {
-	return &Handler{s: _s}
+func NewHandler(_s *service.Service, _rCli *redis.Client, _cache *cache.OrderCache) *Handler {
+	return &Handler{s: _s, rCli: _rCli}
 }
 
 // SaveOrder is echo handler(POST) which return creation status and UserId
@@ -128,7 +131,6 @@ func (h Handler) SaveCat(c echo.Context) error {
 		return c.String(http.StatusInternalServerError, "error while parsing json")
 	}
 
-	
 	return nil
 }
 

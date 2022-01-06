@@ -15,7 +15,7 @@
                 "POSTGRESDB_URL":"postgresql://postgres:passwd@localhost:5614/crudserverdb",
                 "MONGODB_URL":"mongodb://localhost:27017",
                 "SECRETKEY":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-                "REDISDB_URL":"127.0.0.1:6379",
+                "REDISDB_URL":"localhost:6379",
                 "STREAMNAME":"cacheStream"
             }
         }

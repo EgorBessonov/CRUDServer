@@ -11,6 +11,7 @@ require (
 
 require (
 	github.com/caarlos0/env v3.5.0+incompatible // indirect
+	github.com/go-redis/redis v6.15.9+incompatible // indirect
 	github.com/go-stack/stack v1.8.0 // indirect
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
 	github.com/golang/snappy v0.0.1 // indirect

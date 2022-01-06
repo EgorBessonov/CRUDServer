@@ -1,27 +1,26 @@
 package service
 
 import (
-	"CRUDServer/internal/models"
-	"CRUDServer/internal/repository"
+	"CRUDServer/internal/model"
 	"context"
 )
 
 // Save function ...
-func Save(ctx context.Context, rps repository.Repository, order models.Order) error {
-	return rps.Create(ctx, order)
+func(s Service) Save(ctx context.Context, order model.Order) error {
+	return s.rps.Create(ctx, order)
 }
 
 // Get function ...
-func Get(ctx context.Context, rps repository.Repository, userID string) (models.Order, error) {
-	return rps.Read(ctx, userID)
+func(s Service) Get(ctx context.Context, userID string) (model.Order, error) {
+	return s.rps.Read(ctx, userID)
 }
 
 // Delete function ...
-func Delete(ctx context.Context, rps repository.Repository, userID string) error {
-	return rps.Delete(ctx, userID)
+func(s Service) Delete(ctx context.Context, userID string) error {
+	return s.rps.Delete(ctx, userID)
 }
 
 // Update function...
-func Update(ctx context.Context, rps repository.Repository, order models.Order) error {
-	return rps.Update(ctx, order)
+func(s Service) Update(ctx context.Context, order model.Order) error {
+	return s.rps.Update(ctx, order)
 }

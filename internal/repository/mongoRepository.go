@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"CRUDServer/internal/models"
+	"CRUDServer/internal/model"
 	"context"
 	"time"
 
@@ -21,7 +21,7 @@ type MongoRepository struct {
 }
 
 // Create method saves User object into mongo database
-func (rps MongoRepository) Create(ctx context.Context, u models.Order) error {
+func (rps MongoRepository) Create(ctx context.Context, u model.Order) error {
 	col := rps.DBconn.Database("crudserver").Collection("users")
 	ctx, cancel := context.WithTimeout(ctx, timeout*time.Second)
 	defer cancel()
@@ -41,16 +41,16 @@ func (rps MongoRepository) Create(ctx context.Context, u models.Order) error {
 
 // Read method returns User object from mongo database
 // with selection by UserId
-func (rps MongoRepository) Read(ctx context.Context, userID string) (models.Order, error) {
+func (rps MongoRepository) Read(ctx context.Context, userID string) (model.Order, error) {
 	col := rps.DBconn.Database("crudserver").Collection("users")
 	ctx, cancel := context.WithTimeout(ctx, timeout*time.Second)
 	defer cancel()
 
-	var rUser models.Order
+	var rUser model.Order
 	err := col.FindOne(ctx, bson.D{{Key: "_id", Value: userID}}).Decode(&rUser)
 	if err != nil {
 		mongoOperationError(err, "Read()")
-		return models.Order{}, err
+		return model.Order{}, err
 	}
 	mongoOperationSuccess("Read()")
 	return rUser, nil
@@ -58,7 +58,7 @@ func (rps MongoRepository) Read(ctx context.Context, userID string) (models.Orde
 
 // Update method updates User object from mongo database
 // with selection by UserId
-func (rps MongoRepository) Update(ctx context.Context, u models.Order) error {
+func (rps MongoRepository) Update(ctx context.Context, u model.Order) error {
 	col := rps.DBconn.Database("crudserver").Collection("users")
 	ctx, cancel := context.WithTimeout(ctx, timeout*time.Second)
 	defer cancel()
@@ -94,19 +94,19 @@ func (rps MongoRepository) Delete(ctx context.Context, userID string) error {
 
 // GetAuthUser method returns authentication info about user from
 // mongo database with selection by email
-func (rps MongoRepository) GetAuthUser(ctx context.Context, email string) (models.AuthUser, error) {
-	return models.AuthUser{}, nil
+func (rps MongoRepository) GetAuthUser(ctx context.Context, email string) (model.AuthUser, error) {
+	return model.AuthUser{}, nil
 }
 
 // GetAuthUserByID method returns authentication info about user from
 // mongo database with selection by ID
-func (rps MongoRepository) GetAuthUserByID(ctx context.Context, userUUID string) (models.AuthUser, error) {
-	return models.AuthUser{}, nil
+func (rps MongoRepository) GetAuthUserByID(ctx context.Context, userUUID string) (model.AuthUser, error) {
+	return model.AuthUser{}, nil
 }
 
 // CreateAuthUser method saves authentication info about user into
 // postgres database
-func (rps MongoRepository) CreateAuthUser(ctx context.Context, lf *models.AuthUser) error {
+func (rps MongoRepository) CreateAuthUser(ctx context.Context, lf *model.AuthUser) error {
 	col := rps.DBconn.Database("crudserver").Collection("authusers")
 	ctx, cancel := context.WithTimeout(ctx, timeout*time.Second)
 	defer cancel()

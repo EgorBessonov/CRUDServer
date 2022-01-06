@@ -1,13 +1,12 @@
 package main
 
 import (
-	"CRUDServer/internal/configs"
+	"CRUDServer/internal/config"
 	"CRUDServer/internal/handler"
 	"CRUDServer/internal/repository"
 	"CRUDServer/internal/service"
 	"context"
 	"fmt"
-	"os"
 
 	"github.com/caarlos0/env"
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -16,25 +15,36 @@ import (
 	log "github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"github.com/go-redis/redis"
 )
 
 func main() {
-	cfg := configs.Config{
-		CurrentDB:     os.Getenv("CURRENTDB"),
-		PostgresdbURL: os.Getenv("POSTGRESDB_URL"),
-		MongodbURL:    os.Getenv("MONGODB_URL"),
-		SecretKey:     os.Getenv("SECRETKEY"),
-	}
-
+	cfg := configs.Config{}
 	if err := env.Parse(&cfg); err != nil {
 		fmt.Println(err)
 	}
 	e := echo.New()
-
+	
 	_repository := dbConnection(cfg)
-	h := handler.NewHandler(_repository)
 
+	redisClient := redis.NewClient(&redis.Options{
+		Addr: cfg.RedisURL,
+	})
+	if _, err := redisClient.Ping().Result(); err != nil{
+		log.WithFields(log.Fields{
+			"status": "error while connection to redisdb",
+			"err": err,
+		}).Info("redis repository info.")
+	}else{
+		log.WithFields(log.Fields{
+			"status": "successfully connected to redisdb",
+		}).Info("redis repository info.")
+	}
+	s := service.NewService(_repository)
+	h := handler.NewHandler(*s)
+	
 	g := e.Group("/users")
+	c := e.Group("/cats")
 	config := middleware.JWTConfig{
 		Claims:     &service.CustomClaims{},
 		SigningKey: []byte(cfg.SecretKey),
@@ -54,6 +64,8 @@ func main() {
 	e.GET("images/downloadImage", h.DownloadImage)
 	e.POST("images/uploadImage", h.UploadImage)
 
+	c.POST("/save", h.SaveCat)
+	c.GET("/get", h.GetCat)
 	e.Logger.Fatal(e.Start(":8081"))
 }
 

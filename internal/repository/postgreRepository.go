@@ -1,9 +1,8 @@
 package repository
 
 import (
-	"CRUDServer/internal/models"
+	"CRUDServer/internal/model"
 	"context"
-	"fmt"
 
 	"github.com/jackc/pgconn"
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -16,9 +15,9 @@ type PostgresRepository struct {
 }
 
 // Create save Order object into postgresql database
-func (rps PostgresRepository) Create(ctx context.Context, u models.Order) error {
+func (rps PostgresRepository) Create(ctx context.Context, order model.Order) error {
 	result, err := rps.DBconn.Exec(ctx, "insert into orders (orderName, orderCost, isDelivered) "+
-		"values ($1, $2, $3)", u.OrderName, u.OrderCost, u.IsDelivered)
+		"values ($1, $2, $3)", order.OrderName, order.OrderCost, order.IsDelivered)
 	if err != nil {
 		postgresOperationError(err, "Create()")
 		return err
@@ -29,13 +28,13 @@ func (rps PostgresRepository) Create(ctx context.Context, u models.Order) error 
 
 // Read returns Order object from postgresql database
 // with selection by OrderID
-func (rps PostgresRepository) Read(ctx context.Context, orderID string) (models.Order, error) {
-	var order models.Order
+func (rps PostgresRepository) Read(ctx context.Context, orderID string) (model.Order, error) {
+	var order model.Order
 	err := rps.DBconn.QueryRow(ctx, "select orderName, orderCost, isDelivered from orders "+
 		"where orderID=$1", orderID).Scan(&order.OrderName, &order.OrderCost, &order.IsDelivered)
 	if err != nil {
 		postgresOperationError(err, "Read()")
-		return models.Order{}, err
+		return model.Order{}, err
 	}
 	postgresOperationSuccess(nil, "Read()")
 	return order, nil
@@ -43,10 +42,10 @@ func (rps PostgresRepository) Read(ctx context.Context, orderID string) (models.
 
 // Update update Order object from postgresql database
 // with selection by OrderID
-func (rps PostgresRepository) Update(ctx context.Context, ord models.Order) error {
+func (rps PostgresRepository) Update(ctx context.Context, order model.Order) error {
 	result, err := rps.DBconn.Exec(ctx, "update orders "+
 		"set orderName=$2, orderCost=$3, isDelivered=$4"+
-		"where orderID=$1", ord.OrderID, ord.OrderName, ord.OrderCost, ord.IsDelivered)
+		"where orderID=$1", order.OrderID, order.OrderName, order.OrderCost, order.IsDelivered)
 	if err != nil {
 		postgresOperationError(err, "Update()")
 		return err
@@ -69,10 +68,9 @@ func (rps PostgresRepository) Delete(ctx context.Context, orderID string) error 
 
 // CreateAuthUser method saves authentication info about user into
 // postgres database
-func (rps PostgresRepository) CreateAuthUser(ctx context.Context, lf *models.AuthUser) error {
-	fmt.Println(lf)
+func (rps PostgresRepository) CreateAuthUser(ctx context.Context, authUser *model.AuthUser) error {
 	result, err := rps.DBconn.Exec(ctx, "insert into authusers (username, email, password)"+
-		"values($1, $2, $3)", lf.UserName, lf.Email, lf.Password)
+		"values($1, $2, $3)", authUser.UserName, authUser.Email, authUser.Password)
 	if err != nil {
 		postgresOperationError(err, "CreateAuthUser()")
 		return err
@@ -83,13 +81,13 @@ func (rps PostgresRepository) CreateAuthUser(ctx context.Context, lf *models.Aut
 
 // GetAuthUser method returns authentication info about user from
 // postgres database with selection by email
-func (rps PostgresRepository) GetAuthUser(ctx context.Context, email string) (models.AuthUser, error) {
-	var authUser models.AuthUser
+func (rps PostgresRepository) GetAuthUser(ctx context.Context, email string) (model.AuthUser, error) {
+	var authUser model.AuthUser
 	err := rps.DBconn.QueryRow(ctx, "select useruuid, username, email, password from authusers "+
 		"where email=$1", email).Scan(&authUser.UserUUID, &authUser.UserName, &authUser.Email, &authUser.Password)
 	if err != nil {
 		postgresOperationError(err, "GetAuthUser()")
-		return models.AuthUser{}, err
+		return model.AuthUser{}, err
 	}
 	postgresOperationSuccess(nil, "GetAuthUser()")
 	return authUser, nil
@@ -97,13 +95,13 @@ func (rps PostgresRepository) GetAuthUser(ctx context.Context, email string) (mo
 
 // GetAuthUserByID method returns authentication info about user from
 // postgres database with selection by id
-func (rps PostgresRepository) GetAuthUserByID(ctx context.Context, userUUID string) (models.AuthUser, error) {
-	var authUser models.AuthUser
+func (rps PostgresRepository) GetAuthUserByID(ctx context.Context, userUUID string) (model.AuthUser, error) {
+	var authUser model.AuthUser
 	err := rps.DBconn.QueryRow(ctx, "select useruuid, username, email, password, refreshtoken from authusers "+
 		"where useruuid=$1", userUUID).Scan(&authUser.UserUUID, &authUser.UserName, &authUser.Email, &authUser.Password, &authUser.RefreshToken)
 	if err != nil {
 		postgresOperationError(err, "GetAuthUserByID()")
-		return models.AuthUser{}, err
+		return model.AuthUser{}, err
 	}
 	postgresOperationSuccess(nil, "GetAuthUserByID()")
 	return authUser, nil

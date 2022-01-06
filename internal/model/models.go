@@ -1,5 +1,5 @@
-// Package models represent objects structure in application
-package models
+// Package model represent objects structure in application
+package model
 
 // Order type represent order structure in database
 type Order struct {
@@ -17,4 +17,11 @@ type AuthUser struct {
 	Password     string `json:"password"`
 	RefreshToken string `json:"refreshToken"`
 	ExpiresIn    string `json:"expiresIn"`
+}
+
+// Cat struct represents cat information
+type Cat struct{
+	CatName string
+	CatAge int
+	IsHungry bool
 }

@@ -7,4 +7,5 @@ type Config struct {
 	CurrentDB     string `env:"CURRENTDB" envDefault:"postgres"`
 	PostgresdbURL string `env:"POSTGRESDB_URL"`
 	MongodbURL    string `env:"MONGODB_URL"`
+	RedisURL 	  string `env:"REDISDB_URL"`
 }

@@ -18,10 +18,3 @@ type AuthUser struct {
 	RefreshToken string `json:"refreshToken"`
 	ExpiresIn    string `json:"expiresIn"`
 }
-
-// Cat struct represents cat information
-type Cat struct{
-	CatName string
-	CatAge int
-	IsHungry bool
-}

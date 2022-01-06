@@ -18,14 +18,15 @@ import (
 
 // Handler type replies for handling echo server requests
 type Handler struct {
-	s    *service.Service
-	rCli *redis.Client
+	s     *service.Service
+	rCli  *redis.Client
+	cache *cache.OrderCache
 }
 
 // NewHandler function create handler for working with
 // postgres or mongo database and initialize connection with this db
 func NewHandler(_s *service.Service, _rCli *redis.Client, _cache *cache.OrderCache) *Handler {
-	return &Handler{s: _s, rCli: _rCli}
+	return &Handler{s: _s, rCli: _rCli, cache: _cache}
 }
 
 // SaveOrder is echo handler(POST) which return creation status and UserId
@@ -45,7 +46,8 @@ func (h Handler) SaveOrder(c echo.Context) error {
 // GetOrderByID is echo handler(GET) which returns json structure of User object
 func (h Handler) GetOrderByID(c echo.Context) error {
 	orderID := c.QueryParam("orderID")
-	order, err := h.s.Get(c.Request().Context(), orderID)
+
+	order, err := h.s.Get(c.Request().Context(), *h.cache, orderID)
 	if err != nil {
 		return c.String(http.StatusInternalServerError, fmt.Sprintln("error while reading."))
 	}
@@ -122,21 +124,6 @@ func (h Handler) DownloadImage(c echo.Context) error {
 		return c.String(http.StatusBadRequest, fmt.Sprintln("invalid image name."))
 	}
 	return c.File(imageName)
-}
-
-func (h Handler) SaveCat(c echo.Context) error {
-	cat := model.Cat{}
-	if err := (&echo.DefaultBinder{}).BindBody(c, &cat); err != nil {
-		handlerOperationError(errors.New("error while parsing json"), "Registration()")
-		return c.String(http.StatusInternalServerError, "error while parsing json")
-	}
-
-	return nil
-}
-
-func (h Handler) GetCat(c echo.Context) error {
-
-	return nil
 }
 
 func handlerOperationError(err error, method string) {

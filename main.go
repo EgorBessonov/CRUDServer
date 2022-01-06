@@ -1,6 +1,7 @@
 package main
 
 import (
+	"CRUDServer/internal/cache"
 	"CRUDServer/internal/config"
 	"CRUDServer/internal/handler"
 	"CRUDServer/internal/repository"
@@ -28,11 +29,10 @@ func main() {
 	_repository := dbConnection(cfg)
 	s := service.NewService(_repository)
 	redisClient := redisConnection(cfg)
-
-	h := handler.NewHandler(s, redisClient)
+	c := cache.NewCache()
+	h := handler.NewHandler(s, redisClient, c)
 
 	g := e.Group("/users")
-	c := e.Group("/cats")
 	config := middleware.JWTConfig{
 		Claims:     &service.CustomClaims{},
 		SigningKey: []byte(cfg.SecretKey),
@@ -52,8 +52,6 @@ func main() {
 	e.GET("images/downloadImage", h.DownloadImage)
 	e.POST("images/uploadImage", h.UploadImage)
 
-	c.POST("/save", h.SaveCat)
-	c.GET("/get", h.GetCat)
 	e.Logger.Fatal(e.Start(":8081"))
 }
 

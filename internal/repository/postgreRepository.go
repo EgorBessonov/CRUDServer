@@ -26,12 +26,12 @@ func (rps PostgresRepository) Create(ctx context.Context, order model.Order) err
 	return nil
 }
 
-// Read returns Order object from postgresql database
+// Read method returns Order object from postgresql database
 // with selection by OrderID
 func (rps PostgresRepository) Read(ctx context.Context, orderID string) (model.Order, error) {
 	var order model.Order
-	err := rps.DBconn.QueryRow(ctx, "select orderName, orderCost, isDelivered from orders "+
-		"where orderID=$1", orderID).Scan(&order.OrderName, &order.OrderCost, &order.IsDelivered)
+	err := rps.DBconn.QueryRow(ctx, "select orderID, orderName, orderCost, isDelivered from orders "+
+		"where orderID=$1", orderID).Scan(&order.OrderID, &order.OrderName, &order.OrderCost, &order.IsDelivered)
 	if err != nil {
 		postgresOperationError(err, "Read()")
 		return model.Order{}, err
@@ -40,7 +40,7 @@ func (rps PostgresRepository) Read(ctx context.Context, orderID string) (model.O
 	return order, nil
 }
 
-// Update update Order object from postgresql database
+// Update method update Order object from postgresql database
 // with selection by OrderID
 func (rps PostgresRepository) Update(ctx context.Context, order model.Order) error {
 	result, err := rps.DBconn.Exec(ctx, "update orders "+
@@ -54,7 +54,7 @@ func (rps PostgresRepository) Update(ctx context.Context, order model.Order) err
 	return nil
 }
 
-// Delete delete Order object from postgresql database
+// Delete method delete Order object from postgresql database
 // with selection by OrderID
 func (rps PostgresRepository) Delete(ctx context.Context, orderID string) error {
 	result, err := rps.DBconn.Exec(ctx, "delete from orders where orderID=$1", orderID)

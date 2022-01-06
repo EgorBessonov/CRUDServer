@@ -1,7 +1,7 @@
 // Package configs represents config structure
 package configs
 
-// Config type replies for connection to current database
+// Config type store all env info
 type Config struct {
 	SecretKey     string `env:"SECRETKEY"`
 	CurrentDB     string `env:"CURRENTDB" envDefault:"postgres"`

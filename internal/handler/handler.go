@@ -1,4 +1,4 @@
-// Package handler replies handlers for echo server
+// Package handler replies handler for echo server
 package handler
 
 import (
@@ -7,7 +7,6 @@ import (
 	"CRUDServer/internal/service"
 	"errors"
 	"fmt"
-	"github.com/go-redis/redis"
 	"io"
 	"net/http"
 	"os"
@@ -19,17 +18,16 @@ import (
 // Handler type replies for handling echo server requests
 type Handler struct {
 	s     *service.Service
-	rCli  *redis.Client
 	cache *cache.OrderCache
 }
 
 // NewHandler function create handler for working with
 // postgres or mongo database and initialize connection with this db
-func NewHandler(_s *service.Service, _rCli *redis.Client, _cache *cache.OrderCache) *Handler {
-	return &Handler{s: _s, rCli: _rCli, cache: _cache}
+func NewHandler(_s *service.Service, _cache *cache.OrderCache) *Handler {
+	return &Handler{s: _s, cache: _cache}
 }
 
-// SaveOrder is echo handler(POST) which return creation status and UserId
+// SaveOrder is echo handler(POST) which return creation status
 func (h Handler) SaveOrder(c echo.Context) error {
 	order := model.Order{}
 	if err := (&echo.DefaultBinder{}).BindBody(c, &order); err != nil {
@@ -46,7 +44,6 @@ func (h Handler) SaveOrder(c echo.Context) error {
 // GetOrderByID is echo handler(GET) which returns json structure of User object
 func (h Handler) GetOrderByID(c echo.Context) error {
 	orderID := c.QueryParam("orderID")
-
 	order, err := h.s.Get(c.Request().Context(), *h.cache, orderID)
 	if err != nil {
 		return c.String(http.StatusInternalServerError, fmt.Sprintln("error while reading."))
@@ -80,7 +77,7 @@ func (h Handler) UpdateOrderByID(c echo.Context) error {
 		handlerOperationError(errors.New("error while parsing json"), "Registration()")
 		return c.String(http.StatusInternalServerError, "error while parsing json")
 	}
-	err := h.s.Update(c.Request().Context(), order)
+	err := h.s.Update(c.Request().Context(), *h.cache, order)
 	if err != nil {
 		return c.String(http.StatusInternalServerError, fmt.Sprintln("error while updating user"))
 	}

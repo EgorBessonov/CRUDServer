@@ -28,11 +28,11 @@ func main() {
 
 	_repository := dbConnection(cfg)
 	s := service.NewService(_repository)
-	redisClient := redisConnection(cfg)
-	c := cache.NewCache()
-	h := handler.NewHandler(s, redisClient, c)
+	rCli := redisConnection(cfg)
+	c := cache.NewCache(rCli)
+	h := handler.NewHandler(s, c)
 
-	g := e.Group("/users")
+	g := e.Group("/orders")
 	config := middleware.JWTConfig{
 		Claims:     &service.CustomClaims{},
 		SigningKey: []byte(cfg.SecretKey),
@@ -42,7 +42,7 @@ func main() {
 	g.POST("/saveOrder/", h.SaveOrder)
 	g.PUT("/updateOrder/", h.UpdateOrderByID)
 	g.DELETE("/deleteOrder/", h.DeleteOrderByID)
-	g.GET("/getOrder", h.GetOrderByID)
+	g.GET("/getOrder/", h.GetOrderByID)
 
 	e.POST("registration/", h.Registration)
 	e.POST("authentication/", h.Authentication)

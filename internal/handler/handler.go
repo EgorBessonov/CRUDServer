@@ -2,7 +2,7 @@
 package handler
 
 import (
-	"CRUDServer/internal/cache"
+	configs "CRUDServer/internal/config"
 	"CRUDServer/internal/model"
 	"CRUDServer/internal/service"
 	"errors"
@@ -18,13 +18,13 @@ import (
 // Handler type replies for handling echo server requests
 type Handler struct {
 	s     *service.Service
-	cache *cache.OrderCache
+	cfg   *configs.Config
 }
 
 // NewHandler function create handler for working with
 // postgres or mongo database and initialize connection with this db
-func NewHandler(_s *service.Service, _cache *cache.OrderCache) *Handler {
-	return &Handler{s: _s, cache: _cache}
+func NewHandler(_s *service.Service, _cfg *configs.Config) *Handler {
+	return &Handler{s: _s, cfg: _cfg}
 }
 
 // SaveOrder is echo handler(POST) which return creation status
@@ -44,7 +44,7 @@ func (h Handler) SaveOrder(c echo.Context) error {
 // GetOrderByID is echo handler(GET) which returns json structure of User object
 func (h Handler) GetOrderByID(c echo.Context) error {
 	orderID := c.QueryParam("orderID")
-	order, err := h.s.Get(c.Request().Context(), *h.cache, orderID)
+	order, err := h.s.Get(c.Request().Context(), h.cfg, orderID)
 	if err != nil {
 		return c.String(http.StatusInternalServerError, fmt.Sprintln("error while reading."))
 	}
@@ -77,7 +77,7 @@ func (h Handler) UpdateOrderByID(c echo.Context) error {
 		handlerOperationError(errors.New("error while parsing json"), "Registration()")
 		return c.String(http.StatusInternalServerError, "error while parsing json")
 	}
-	err := h.s.Update(c.Request().Context(), *h.cache, order)
+	err := h.s.Update(c.Request().Context(), h.cfg,order)
 	if err != nil {
 		return c.String(http.StatusInternalServerError, fmt.Sprintln("error while updating user"))
 	}

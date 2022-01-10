@@ -2,6 +2,7 @@
 package service
 
 import (
+	"CRUDServer/internal/cache"
 	"CRUDServer/internal/model"
 	"CRUDServer/internal/repository"
 	"context"
@@ -16,12 +17,13 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-type Service struct{
+type Service struct {
 	rps repository.Repository
+	orderCache *cache.OrderCache
 }
 
-func NewService(_rps repository.Repository) *Service{
-	return &Service{ rps:_rps}
+func NewService(_rps repository.Repository, _orderCache *cache.OrderCache) *Service{
+	return &Service{ rps:_rps, orderCache: _orderCache}
 }
 	
 const(

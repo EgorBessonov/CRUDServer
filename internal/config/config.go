@@ -9,4 +9,5 @@ type Config struct {
 	MongodbURL    string `env:"MONGODB_URL"`
 	RedisURL      string `env:"REDISDB_URL"`
 	StreamName    string `env:"STREAMNAME"`
+	ServiceUUID   string `env:"SERVICEUUID"`
 }

@@ -1,7 +1,7 @@
 package service
 
 import (
-	"CRUDServer/internal/cache"
+	"CRUDServer/internal/config"
 	"CRUDServer/internal/model"
 	"context"
 )
@@ -12,8 +12,8 @@ func (s Service) Save(ctx context.Context, order model.Order) error {
 }
 
 // Get function ...
-func (s Service) Get(ctx context.Context, cache cache.OrderCache, orderID string) (model.Order, error) {
-	return cache.GetOrder(ctx, s.rps, orderID)
+func (s Service) Get(ctx context.Context, cfg *configs.Config, orderID string) (model.Order, error) {
+	return s.orderCache.GetOrder(ctx, cfg, s.rps, orderID)
 }
 
 // Delete function ...
@@ -22,6 +22,6 @@ func (s Service) Delete(ctx context.Context, orderID string) error {
 }
 
 // Update function...
-func (s Service) Update(ctx context.Context, cache cache.OrderCache, order model.Order) error {
-	return cache.UpdateOrder(ctx, s.rps, order)
+func (s Service) Update(ctx context.Context, cfg *configs.Config, order model.Order) error {
+	return s.orderCache.UpdateOrder(ctx, cfg, s.rps, order)
 }

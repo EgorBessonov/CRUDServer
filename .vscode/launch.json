@@ -16,7 +16,8 @@
                 "MONGODB_URL":"mongodb://localhost:27017",
                 "SECRETKEY":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
                 "REDISDB_URL":"localhost:6379",
-                "STREAMNAME":"cacheStream"
+                "STREAMNAME":"cachestream",
+                "SERVICEUUID":"07984e57-8172-4fd5-8776-7f30ec9db9db"
             }
         }
     ]

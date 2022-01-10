@@ -27,11 +27,11 @@ func main() {
 	e := echo.New()
 
 	_repository := dbConnection(cfg)
-	s := service.NewService(_repository)
-	rCli := redisConnection(cfg)
-	c := cache.NewCache(rCli)
-	h := handler.NewHandler(s, c)
-
+	_redisClient := redisConnection(cfg)
+	c := cache.NewCache(_redisClient, cfg.ServiceUUID)
+	s := service.NewService(_repository, c)
+	h := handler.NewHandler(s, &cfg)
+	go c.ReadStreamMsg(&cfg, _redisClient)
 	g := e.Group("/orders")
 	config := middleware.JWTConfig{
 		Claims:     &service.CustomClaims{},

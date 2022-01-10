@@ -31,7 +31,6 @@ func main() {
 	c := cache.NewCache(_redisClient, cfg.ServiceUUID)
 	s := service.NewService(_repository, c)
 	h := handler.NewHandler(s, &cfg)
-	go c.ReadStreamMsg(&cfg, _redisClient)
 	g := e.Group("/orders")
 	config := middleware.JWTConfig{
 		Claims:     &service.CustomClaims{},

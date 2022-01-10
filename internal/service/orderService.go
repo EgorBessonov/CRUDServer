@@ -23,5 +23,6 @@ func (s Service) Delete(ctx context.Context, orderID string) error {
 
 // Update function...
 func (s Service) Update(ctx context.Context, cfg *configs.Config, order model.Order) error {
+	err := s.rps.Update(ctx, order)
 	return s.orderCache.UpdateOrder(ctx, cfg, s.rps, order)
 }

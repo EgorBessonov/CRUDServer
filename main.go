@@ -28,7 +28,7 @@ func main() {
 
 	_repository := dbConnection(cfg)
 	_redisClient := redisConnection(cfg)
-	c := cache.NewCache(_redisClient, cfg.ServiceUUID)
+	c := cache.NewCache(context.Background(), cfg, _redisClient)
 	s := service.NewService(_repository, c)
 	h := handler.NewHandler(s, &cfg)
 	g := e.Group("/orders")

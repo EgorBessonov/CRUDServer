@@ -17,8 +17,8 @@ import (
 
 // Handler type replies for handling echo server requests
 type Handler struct {
-	s     *service.Service
-	cfg   *configs.Config
+	s   *service.Service
+	cfg *configs.Config
 }
 
 // NewHandler function create handler for working with
@@ -44,7 +44,7 @@ func (h Handler) SaveOrder(c echo.Context) error {
 // GetOrderByID is echo handler(GET) which returns json structure of User object
 func (h Handler) GetOrderByID(c echo.Context) error {
 	orderID := c.QueryParam("orderID")
-	order, err := h.s.Get(c.Request().Context(), h.cfg, orderID)
+	order, err := h.s.Get(c.Request().Context(), orderID)
 	if err != nil {
 		return c.String(http.StatusInternalServerError, fmt.Sprintln("error while reading."))
 	}
@@ -77,7 +77,7 @@ func (h Handler) UpdateOrderByID(c echo.Context) error {
 		handlerOperationError(errors.New("error while parsing json"), "Registration()")
 		return c.String(http.StatusInternalServerError, "error while parsing json")
 	}
-	err := h.s.Update(c.Request().Context(), h.cfg,order)
+	err := h.s.Update(c.Request().Context(), order)
 	if err != nil {
 		return c.String(http.StatusInternalServerError, fmt.Sprintln("error while updating user"))
 	}

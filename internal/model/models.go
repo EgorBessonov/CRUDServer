@@ -1,6 +1,8 @@
 // Package model represent objects structure in application
 package model
 
+import "encoding/json"
+
 // Order type represent order structure in database
 type Order struct {
 	OrderID     string `json:"orderID"`
@@ -17,4 +19,12 @@ type AuthUser struct {
 	Password     string `json:"password"`
 	RefreshToken string `json:"refreshToken"`
 	ExpiresIn    string `json:"expiresIn"`
+}
+
+func (order Order) MarshalBinary() ([]byte, error) {
+	return json.Marshal(order)
+}
+
+func (order Order) UnmarshalBinary(data []byte) error {
+	return json.Unmarshal(data, &order)
 }

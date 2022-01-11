@@ -23,12 +23,12 @@ type Handler struct {
 
 // NewHandler function create handler for working with
 // postgres or mongo database and initialize connection with this db
-func NewHandler(_s *service.Service, _cfg *configs.Config) *Handler {
-	return &Handler{s: _s, cfg: _cfg}
+func NewHandler(s *service.Service, cfg *configs.Config) *Handler {
+	return &Handler{s: s, cfg: cfg}
 }
 
 // SaveOrder is echo handler(POST) which return creation status
-func (h Handler) SaveOrder(c echo.Context) error {
+func (h *Handler) SaveOrder(c echo.Context) error {
 	order := model.Order{}
 	if err := (&echo.DefaultBinder{}).BindBody(c, &order); err != nil {
 		handlerOperationError(errors.New("error while parsing json"), "Authentication()")
@@ -42,7 +42,7 @@ func (h Handler) SaveOrder(c echo.Context) error {
 }
 
 // GetOrderByID is echo handler(GET) which returns json structure of User object
-func (h Handler) GetOrderByID(c echo.Context) error {
+func (h *Handler) GetOrderByID(c echo.Context) error {
 	orderID := c.QueryParam("orderID")
 	order, err := h.s.Get(c.Request().Context(), orderID)
 	if err != nil {
@@ -60,7 +60,7 @@ func (h Handler) GetOrderByID(c echo.Context) error {
 }
 
 // DeleteOrderByID is echo handler(DELETE) which return deletion status
-func (h Handler) DeleteOrderByID(c echo.Context) error {
+func (h *Handler) DeleteOrderByID(c echo.Context) error {
 	orderID := c.QueryParam("orderID")
 	fmt.Println(orderID)
 	err := h.s.Delete(c.Request().Context(), orderID)
@@ -71,7 +71,7 @@ func (h Handler) DeleteOrderByID(c echo.Context) error {
 }
 
 // UpdateOrderByID is echo handler(PUT) which return updating status
-func (h Handler) UpdateOrderByID(c echo.Context) error {
+func (h *Handler) UpdateOrderByID(c echo.Context) error {
 	order := model.Order{}
 	if err := (&echo.DefaultBinder{}).BindBody(c, &order); err != nil {
 		handlerOperationError(errors.New("error while parsing json"), "Registration()")
@@ -85,7 +85,7 @@ func (h Handler) UpdateOrderByID(c echo.Context) error {
 }
 
 // UploadImage is echo handler(POST) for uploading user images from server
-func (h Handler) UploadImage(c echo.Context) error {
+func (h *Handler) UploadImage(c echo.Context) error {
 	imageFile, err := c.FormFile("image")
 	if err != nil {
 		handlerOperationError(err, "UploadImage()")
@@ -115,7 +115,7 @@ func (h Handler) UploadImage(c echo.Context) error {
 }
 
 // DownloadImage is echo handler(GET) for downloading user images
-func (h Handler) DownloadImage(c echo.Context) error {
+func (h *Handler) DownloadImage(c echo.Context) error {
 	imageName := c.QueryParam("imageName")
 	if imageName == "" {
 		return c.String(http.StatusBadRequest, fmt.Sprintln("invalid image name."))

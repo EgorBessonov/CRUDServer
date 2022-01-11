@@ -11,7 +11,7 @@ import (
 )
 
 // Registration method is echo authentication method(POST) for creating user
-func (h Handler) Registration(c echo.Context) error {
+func (h *Handler) Registration(c echo.Context) error {
 	authUser := model.AuthUser{}
 	if err := (&echo.DefaultBinder{}).BindBody(c, &authUser); err != nil {
 		handlerOperationError(errors.New("error while parsing json"), "Registration()")
@@ -25,9 +25,9 @@ func (h Handler) Registration(c echo.Context) error {
 }
 
 // Authentication method checks user password and if it ok returns access and refresh tokens
-func (h Handler) Authentication(c echo.Context) error {
+func (h *Handler) Authentication(c echo.Context) error {
 	authUser := struct {
-		Email	 string
+		Email    string
 		Password string
 	}{}
 	if err := (&echo.DefaultBinder{}).BindBody(c, &authUser); err != nil {
@@ -49,7 +49,7 @@ func (h Handler) Authentication(c echo.Context) error {
 }
 
 // RefreshToken method checks refresh token for validity and if it ok returns new token pair
-func (h Handler) RefreshToken(c echo.Context) error {
+func (h *Handler) RefreshToken(c echo.Context) error {
 	refreshTokenString := c.QueryParam("refreshToken")
 	if refreshTokenString == "" {
 		authOperationError(errors.New("empty refresh token"), "RefreshToken()")
@@ -71,7 +71,7 @@ func (h Handler) RefreshToken(c echo.Context) error {
 }
 
 // Logout method delete user refresh token from database
-func (h Handler) Logout(c echo.Context) error {
+func (h *Handler) Logout(c echo.Context) error {
 	email := c.QueryParam("email")
 	if email == "" {
 		authOperationError(errors.New("empty email value"), "Logout()")

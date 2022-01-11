@@ -26,10 +26,11 @@ func main() {
 	}
 	e := echo.New()
 
-	_repository := dbConnection(cfg)
-	_redisClient := redisConnection(cfg)
-	c := cache.NewCache(context.Background(), cfg, _redisClient)
-	s := service.NewService(_repository, c)
+	repo := dbConnection(cfg)
+	redisClient := redisConnection(cfg)
+	defer redisClient.Close()
+	c := cache.NewCache(redisClient.Context(), cfg, redisClient)
+	s := service.NewService(repo, c)
 	h := handler.NewHandler(s, &cfg)
 	g := e.Group("/orders")
 	config := middleware.JWTConfig{

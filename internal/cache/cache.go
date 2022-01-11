@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"github.com/go-redis/redis"
 	log "github.com/sirupsen/logrus"
+	"sync"
 )
 
 // OrderCache type represents cache object structure and behavior
@@ -16,6 +17,7 @@ type OrderCache struct {
 	orders      map[string]model.Order
 	redisClient *redis.Client
 	streamName  string
+	mutex       sync.Mutex
 }
 
 // NewCache returns new cache instance with redisdb client
@@ -23,6 +25,7 @@ func NewCache(ctx context.Context, cfg configs.Config, rCli *redis.Client) *Orde
 	var cache OrderCache
 	cache.orders = make(map[string]model.Order)
 	cache.redisClient = rCli
+	cache.streamName = cfg.StreamName
 	go func() {
 		for {
 			select {
@@ -30,7 +33,7 @@ func NewCache(ctx context.Context, cfg configs.Config, rCli *redis.Client) *Orde
 				return
 			default:
 				result, err := rCli.XRead(&redis.XReadArgs{
-					Streams: []string{cfg.StreamName, "0"},
+					Streams: []string{cfg.StreamName, "$"},
 					Count:   1,
 					Block:   0,
 				}).Result()
@@ -58,24 +61,26 @@ func NewCache(ctx context.Context, cfg configs.Config, rCli *redis.Client) *Orde
 }
 
 // Get method firstly check cache for order and if it isn't there method goes to repository and save this order object in cache
-func (orderCache OrderCache) Get(orderID string) model.Order {
+func (orderCache *OrderCache) Get(orderID string) model.Order {
+	orderCache.mutex.Lock()
+	defer orderCache.mutex.Unlock()
 	return orderCache.orders[orderID]
 }
 
 //Save method
-func (orderCache OrderCache) Save(order model.Order) error {
-	sendToStreamMessage(orderCache.redisClient, orderCache.streamName, "save", order)
+func (orderCache *OrderCache) Save(order model.Order) error {
+	orderCache.sendMessageToStream("save", order)
 	return nil
 }
 
 // Update method update order objects in cache and repository and send message to redis stream
-func (orderCache OrderCache) Update(order model.Order) error {
-	sendToStreamMessage(orderCache.redisClient, orderCache.streamName, "update", order)
+func (orderCache *OrderCache) Update(order model.Order) error {
+	orderCache.sendMessageToStream("update", order)
 	return nil
 }
 
-// DeleteOrder method delete order object from cache and repository and send message to redis stream
-func (orderCache OrderCache) Delete(orderID string) error {
-	sendToStreamMessage(orderCache.redisClient, orderCache.streamName, "delete", orderID)
+// Delete method delete order object from cache and repository and send message to redis stream
+func (orderCache *OrderCache) Delete(orderID string) error {
+	orderCache.sendMessageToStream("delete", orderID)
 	return nil
 }

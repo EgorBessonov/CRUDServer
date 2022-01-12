@@ -5,7 +5,6 @@ import (
 	configs "CRUDServer/internal/config"
 	"CRUDServer/internal/model"
 	"CRUDServer/internal/service"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -31,14 +30,15 @@ func NewHandler(s *service.Service, cfg *configs.Config) *Handler {
 func (h *Handler) SaveOrder(c echo.Context) error {
 	order := model.Order{}
 	if err := (&echo.DefaultBinder{}).BindBody(c, &order); err != nil {
-		handlerOperationError(errors.New("error while parsing json"), "Authentication()")
-		return c.String(http.StatusInternalServerError, "error while parsing json")
+		log.Error(fmt.Errorf("handler: can't save order - %w", err))
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error while saving"))
 	}
-	err := h.s.Save(c.Request().Context(), order)
+	err := h.s.Save(c.Request().Context(), &order)
 	if err != nil {
-		return c.String(http.StatusInternalServerError, fmt.Sprintln("Error while adding User to db."))
+		log.Error(fmt.Errorf("handler: can't save order - %w", err))
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error while saving"))
 	}
-	return c.String(http.StatusOK, fmt.Sprintln("successfully added."))
+	return c.String(http.StatusOK, fmt.Sprintln("successfully added"))
 }
 
 // GetOrderByID is echo handler(GET) which returns json structure of User object
@@ -46,7 +46,8 @@ func (h *Handler) GetOrderByID(c echo.Context) error {
 	orderID := c.QueryParam("orderID")
 	order, err := h.s.Get(c.Request().Context(), orderID)
 	if err != nil {
-		return c.String(http.StatusInternalServerError, fmt.Sprintln("error while reading."))
+		log.Error(fmt.Errorf("handler: can't get order - %w", err))
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintln("get operation failed"))
 	}
 	return c.JSONBlob(
 		http.StatusOK,
@@ -62,10 +63,10 @@ func (h *Handler) GetOrderByID(c echo.Context) error {
 // DeleteOrderByID is echo handler(DELETE) which return deletion status
 func (h *Handler) DeleteOrderByID(c echo.Context) error {
 	orderID := c.QueryParam("orderID")
-	fmt.Println(orderID)
 	err := h.s.Delete(c.Request().Context(), orderID)
 	if err != nil {
-		return c.String(http.StatusInternalServerError, fmt.Sprintln("error while deleting."))
+		log.Error(fmt.Errorf("handler: can't delete order - %w", err))
+		return echo.NewHTTPError(http.StatusInternalServerError, "error while deleting")
 	}
 	return c.String(http.StatusOK, fmt.Sprintln("successfully updated."))
 }
@@ -74,12 +75,13 @@ func (h *Handler) DeleteOrderByID(c echo.Context) error {
 func (h *Handler) UpdateOrderByID(c echo.Context) error {
 	order := model.Order{}
 	if err := (&echo.DefaultBinder{}).BindBody(c, &order); err != nil {
-		handlerOperationError(errors.New("error while parsing json"), "Registration()")
-		return c.String(http.StatusInternalServerError, "error while parsing json")
+		log.Error("handler: can't update order - error while parsing")
+		return echo.NewHTTPError(http.StatusInternalServerError, "error while parsing json")
 	}
-	err := h.s.Update(c.Request().Context(), order)
+	err := h.s.Update(c.Request().Context(), &order)
 	if err != nil {
-		return c.String(http.StatusInternalServerError, fmt.Sprintln("error while updating user"))
+		log.Errorf("handler: can't update order - %e", err)
+		return echo.NewHTTPError(http.StatusInternalServerError, "error while updating user")
 	}
 	return c.String(http.StatusOK, fmt.Sprintln("successfully updated."))
 }
@@ -88,28 +90,28 @@ func (h *Handler) UpdateOrderByID(c echo.Context) error {
 func (h *Handler) UploadImage(c echo.Context) error {
 	imageFile, err := c.FormFile("image")
 	if err != nil {
-		handlerOperationError(err, "UploadImage()")
-		return c.String(http.StatusInternalServerError, "operation failed.")
+		log.Errorf("handler: can't upload image - %e", err)
+		return echo.NewHTTPError(http.StatusInternalServerError, "operation failed.")
 	}
 	imageSrc, err := imageFile.Open()
 	if err != nil {
-		handlerOperationError(err, "UploadImage()")
-		return c.String(http.StatusInternalServerError, "operation failed.")
+		log.Errorf("handler: can't upload image - %e", err)
+		return echo.NewHTTPError(http.StatusInternalServerError, "operation failed.")
 	}
 	defer func() {
 		err = imageSrc.Close()
 		if err != nil {
-			handlerOperationError(err, "UploadImage()")
+			log.Error()
 		}
 	}()
 	dst, err := os.Create(imageFile.Filename)
 	if err != nil {
-		handlerOperationError(err, "UploadImage()")
-		return c.String(http.StatusInternalServerError, "operation failed.")
+		log.Errorf("handler: can't upload image - %e", err)
+		return echo.NewHTTPError(http.StatusInternalServerError, "operation failed.")
 	}
 	if _, err = io.Copy(dst, imageSrc); err != nil {
-		handlerOperationError(err, "UploadImage()")
-		return c.String(http.StatusInternalServerError, "operation failed.")
+		log.Errorf("handler: can't upload image - %e", err)
+		return echo.NewHTTPError(http.StatusInternalServerError, "operation failed.")
 	}
 	return c.String(http.StatusOK, fmt.Sprintln("successfully uploaded."))
 }
@@ -118,15 +120,8 @@ func (h *Handler) UploadImage(c echo.Context) error {
 func (h *Handler) DownloadImage(c echo.Context) error {
 	imageName := c.QueryParam("imageName")
 	if imageName == "" {
-		return c.String(http.StatusBadRequest, fmt.Sprintln("invalid image name."))
+		log.Errorf("handler: can't download image - empty value")
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintln("invalid image name."))
 	}
 	return c.File(imageName)
-}
-
-func handlerOperationError(err error, method string) {
-	log.WithFields(log.Fields{
-		"status": "Operation Failed.",
-		"method": method,
-		"error":  err,
-	}).Info("Handler info.")
 }

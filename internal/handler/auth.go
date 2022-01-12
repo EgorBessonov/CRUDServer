@@ -2,7 +2,6 @@ package handler
 
 import (
 	"CRUDServer/internal/model"
-	"errors"
 	"fmt"
 	"net/http"
 
@@ -14,12 +13,13 @@ import (
 func (h *Handler) Registration(c echo.Context) error {
 	authUser := model.AuthUser{}
 	if err := (&echo.DefaultBinder{}).BindBody(c, &authUser); err != nil {
-		handlerOperationError(errors.New("error while parsing json"), "Registration()")
-		return c.String(http.StatusInternalServerError, "error while parsing json")
+		log.Errorf("handler: registration failed - %e", err)
+		return echo.NewHTTPError(http.StatusInternalServerError, "error while parsing json")
 	}
 	err := h.s.Registration(c.Request().Context(), &authUser)
 	if err != nil {
-		return c.String(http.StatusInternalServerError, "error while saving form.")
+		log.Errorf("handler: registration failed - %e", err)
+		return echo.NewHTTPError(http.StatusInternalServerError, "error while saving form.")
 	}
 	return c.String(http.StatusOK, "successfully.")
 }
@@ -31,12 +31,13 @@ func (h *Handler) Authentication(c echo.Context) error {
 		Password string
 	}{}
 	if err := (&echo.DefaultBinder{}).BindBody(c, &authUser); err != nil {
-		handlerOperationError(errors.New("error while parsing json"), "Authentication()")
-		return c.String(http.StatusInternalServerError, "error while parsing json")
+		log.Errorf("handler: authentication failed - %e", err)
+		return echo.NewHTTPError(http.StatusInternalServerError, "error while parsing json")
 	}
 	accessTokenString, refreshTokenString, err := h.s.Authentication(c.Request().Context(), authUser.Email, authUser.Password)
 	if err != nil {
-		return c.String(http.StatusInternalServerError, fmt.Sprintln(err))
+		log.Errorf("handler: authentication failed - %e", err)
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintln(err))
 	}
 	return c.JSONBlob(
 		http.StatusOK,
@@ -52,13 +53,13 @@ func (h *Handler) Authentication(c echo.Context) error {
 func (h *Handler) RefreshToken(c echo.Context) error {
 	refreshTokenString := c.QueryParam("refreshToken")
 	if refreshTokenString == "" {
-		authOperationError(errors.New("empty refresh token"), "RefreshToken()")
-		return c.String(http.StatusBadRequest, "empty refresh token.")
+		log.Errorf("handler: token refresh  failed - empty value")
+		return echo.NewHTTPError(http.StatusBadRequest, "empty refresh token.")
 	}
 	newAccessTokenString, newRefreshTokenString, err := h.s.RefreshToken(c.Request().Context(), refreshTokenString)
 	if err != nil {
-		authOperationError(errors.New("error while creating token"), "RefreshToken()")
-		return c.String(http.StatusInternalServerError, "error while creating tokens")
+		log.Errorf("handler: token refresh failed - %e", err)
+		return echo.NewHTTPError(http.StatusInternalServerError, "error while creating tokens")
 	}
 	return c.JSONBlob(
 		http.StatusOK,
@@ -74,25 +75,13 @@ func (h *Handler) RefreshToken(c echo.Context) error {
 func (h *Handler) Logout(c echo.Context) error {
 	email := c.QueryParam("email")
 	if email == "" {
-		authOperationError(errors.New("empty email value"), "Logout()")
-		return c.String(http.StatusBadRequest, "Empty value")
+		log.Error("handler: logout failed - empty value")
+		return echo.NewHTTPError(http.StatusBadRequest, "empty value")
 	}
 	err := h.s.UpdateAuthUser(c.Request().Context(), email, "")
 	if err != nil {
-		authOperationError(errors.New("logout error"), "Logout()")
-		return c.String(http.StatusInternalServerError, "logout error.")
+		log.Errorf("handler: logout failed - %e", err)
+		return echo.NewHTTPError(http.StatusInternalServerError, "logout error.")
 	}
-	log.WithFields(log.Fields{
-		"status": "Successfully",
-		"method": "Logout",
-	})
 	return c.String(http.StatusOK, "logout successfully")
-}
-
-func authOperationError(err error, method string) {
-	log.WithFields(log.Fields{
-		"method": method,
-		"err":    err,
-		"status": "Operation failed.",
-	}).Info("Authentication info.")
 }

@@ -4,15 +4,18 @@ import (
 	"CRUDServer/internal/model"
 	"context"
 	"fmt"
+
+	"github.com/google/uuid"
 )
 
 // Save function ...
 func (s Service) Save(ctx context.Context, order *model.Order) error {
+	order.OrderID = uuid.New().String()
 	if err := s.orderCache.Save(order); err != nil {
-		return fmt.Errorf("service: can't create order %w", err)
+		return fmt.Errorf("service: can't create order - %w", err)
 	}
 	if err := s.rps.Save(ctx, order); err != nil {
-		return fmt.Errorf("service: can't create order %w", err)
+		return fmt.Errorf("service: can't create order - %w", err)
 	}
 	return nil
 }

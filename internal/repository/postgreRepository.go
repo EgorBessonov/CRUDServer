@@ -20,8 +20,8 @@ func (rps PostgresRepository) Save(ctx context.Context, order *model.Order) erro
 		"orderID":   order.OrderID,
 		"orderName": order.OrderName,
 	}).Debugf("repository: create order")
-	_, err := rps.DBconn.Exec(ctx, `"insert into orders (orderName, orderCost, isDelivered) "
-		"values ($1, $2, $3)"`, order.OrderName, order.OrderCost, order.IsDelivered)
+	_, err := rps.DBconn.Exec(ctx, `insert into orders (orderID, orderName, orderCost, isDelivered) 
+		values ($1, $2, $3, $4)`, order.OrderID, order.OrderName, order.OrderCost, order.IsDelivered)
 	if err != nil {
 		return fmt.Errorf("postgres repository: can't save order", err)
 	}
@@ -79,7 +79,7 @@ func (rps PostgresRepository) SaveAuthUser(ctx context.Context, authUser *model.
 		"userID":   authUser.UserUUID,
 		"userName": authUser.UserName,
 	}).Debugf("postgres repository: save authUser")
-	_, err := rps.DBconn.Exec(ctx, `insert into authusers (username, email, password)
+	_, err := rps.DBconn.Exec(ctx, `insert into authusers (username, email, password) 
 		values($1, $2, $3)`, authUser.UserName, authUser.Email, authUser.Password)
 	if err != nil {
 		return fmt.Errorf("postgres repository: can't save authUser - %w", err)

@@ -7,9 +7,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"sync"
+	
 	"github.com/go-redis/redis"
 	log "github.com/sirupsen/logrus"
-	"sync"
+	
 )
 
 // OrderCache type represents cache object structure and behavior
@@ -62,24 +64,24 @@ func NewCache(ctx context.Context, cfg configs.Config, rCli *redis.Client) *Orde
 	return &cache
 }
 
-// Get method firstly check cache for order and if it isn't there method goes to repository and save this order object in cache
+// Get method return order instance from cache
 func (orderCache *OrderCache) Get(orderID string) *model.Order {
 	orderCache.mutex.Lock()
 	defer orderCache.mutex.Unlock()
 	return orderCache.orders[orderID]
 }
 
-//Save method
+//Save method send message to redis stream for saving order
 func (orderCache *OrderCache) Save(order *model.Order) error {
 	return orderCache.sendMessageToStream("save", order)
 }
 
-// Update method update order objects in cache and repository and send message to redis stream
+// Update method send message to redis stream for updating order
 func (orderCache *OrderCache) Update(order *model.Order) error {
 	return orderCache.sendMessageToStream("update", order)
 }
 
-// Delete method delete order object from cache and repository and send message to redis stream
+// Delete method send message to redis stream for removing order
 func (orderCache *OrderCache) Delete(orderID string) error {
 	return orderCache.sendMessageToStream("delete", orderID)
 }

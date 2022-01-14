@@ -8,7 +8,7 @@ import (
 	"github.com/google/uuid"
 )
 
-// Save function ...
+// Save function method generate order uuid and after that save instance in cache and repository
 func (s Service) Save(ctx context.Context, order *model.Order) error {
 	order.OrderID = uuid.New().String()
 	if err := s.orderCache.Save(order); err != nil {
@@ -20,7 +20,7 @@ func (s Service) Save(ctx context.Context, order *model.Order) error {
 	return nil
 }
 
-// Get function ...
+// Get method look through cache for order and if order wasn't found, method get it from repository and add it in cache
 func (s Service) Get(ctx context.Context, orderID string) (*model.Order, error) {
 	order := s.orderCache.Get(orderID)
 	if order == nil {
@@ -36,7 +36,7 @@ func (s Service) Get(ctx context.Context, orderID string) (*model.Order, error) 
 	return order, nil
 }
 
-// Delete function ...
+// Delete method delete order from repository and cache
 func (s Service) Delete(ctx context.Context, orderID string) error {
 	if err := s.orderCache.Delete(orderID); err != nil {
 		return fmt.Errorf("service: can't delete order - %w", err)
@@ -47,7 +47,7 @@ func (s Service) Delete(ctx context.Context, orderID string) error {
 	return nil
 }
 
-// Update method
+// Update method update order instance in repository and cache
 func (s Service) Update(ctx context.Context, order *model.Order) error {
 	if err := s.orderCache.Update(order); err != nil {
 		return fmt.Errorf("service: can't update order - %w", err)

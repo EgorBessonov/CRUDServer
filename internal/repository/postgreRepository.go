@@ -4,8 +4,8 @@ import (
 	"CRUDServer/internal/model"
 	"context"
 	"fmt"
-	log "github.com/sirupsen/logrus"
 
+	log "github.com/sirupsen/logrus"
 	"github.com/jackc/pgx/v4/pgxpool"
 )
 
@@ -14,7 +14,7 @@ type PostgresRepository struct {
 	DBconn *pgxpool.Pool
 }
 
-// Create save Order object into postgresql database
+// Save save Order object into postgresql database
 func (rps PostgresRepository) Save(ctx context.Context, order *model.Order) error {
 	log.WithFields(log.Fields{
 		"orderID":   order.OrderID,
@@ -28,7 +28,7 @@ func (rps PostgresRepository) Save(ctx context.Context, order *model.Order) erro
 	return nil
 }
 
-// Read method returns Order object from postgresql database
+// Get method returns Order object from postgresql database
 // with selection by OrderID
 func (rps PostgresRepository) Get(ctx context.Context, orderID string) (*model.Order, error) {
 	log.WithFields(log.Fields{
@@ -72,7 +72,7 @@ func (rps PostgresRepository) Delete(ctx context.Context, orderID string) error 
 	return nil
 }
 
-// CreateAuthUser method saves authentication info about user into
+// SaveAuthUser method saves authentication info about user into
 // postgres database
 func (rps PostgresRepository) SaveAuthUser(ctx context.Context, authUser *model.AuthUser) error {
 	log.WithFields(log.Fields{

@@ -15,11 +15,12 @@ import (
 	"github.com/golang-jwt/jwt"
 )
 
+// Service type
 type Service struct {
 	rps        repository.Repository
 	orderCache *cache.OrderCache
 }
-
+// NewService method returns new Service instance
 func NewService(_rps repository.Repository, _orderCache *cache.OrderCache) *Service {
 	return &Service{rps: _rps, orderCache: _orderCache}
 }
@@ -36,6 +37,7 @@ type CustomClaims struct {
 	jwt.StandardClaims
 }
 
+// Registration method hash user password and after that save user in repository
 func (s Service) Registration(ctx context.Context, authUser *model.AuthUser) error {
 	hPassword, err := hashPassword(authUser.Password)
 	if err != nil {
@@ -49,6 +51,7 @@ func (s Service) Registration(ctx context.Context, authUser *model.AuthUser) err
 	return nil
 }
 
+// RefreshToken method checks refresh token for validity and if it's ok return new token pair
 func (s Service) RefreshToken(ctx context.Context, refreshTokenString string) (string, string, error) {
 	keyFunc := func(t *jwt.Token) (interface{}, error) {
 		return []byte(os.Getenv("SECRETKEY")), nil
@@ -75,6 +78,7 @@ func (s Service) RefreshToken(ctx context.Context, refreshTokenString string) (s
 	return createTokenPair(s.rps, ctx, authUser)
 }
 
+// Authentication method check user password for validity and if it's correct return access and refresh tokens
 func (s Service) Authentication(ctx context.Context, email, password string) (string, string, error) {
 	hashPassword, err := hashPassword(password)
 	if err != nil {
@@ -90,6 +94,7 @@ func (s Service) Authentication(ctx context.Context, email, password string) (st
 	return createTokenPair(s.rps, ctx, authForm)
 }
 
+// UpdateAuthUser method update user instance in repository
 func (s Service) UpdateAuthUser(ctx context.Context, email string, refreshToken string) error {
 	return s.rps.UpdateAuthUser(ctx, email, refreshToken)
 }

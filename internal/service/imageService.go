@@ -8,6 +8,7 @@ import (
 	"os"
 )
 
+// UploadImage method save image in local folder
 func (s Service) UploadImage(image *multipart.FileHeader) error {
 	src, err := image.Open()
 	if err != nil {

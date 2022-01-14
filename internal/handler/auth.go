@@ -9,7 +9,16 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// Registration method is echo authentication method(POST) for creating user
+// Registration godoc
+// @Summary Registration
+// @Description Registration method is echo authentication method(POST) for creating user
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param input body model.AuthUser true "auth user instance"
+// @Success 200 {object} string
+// @Failure 500 {object} echo.HTTPError
+// @Router registration/ [post]
 func (h *Handler) Registration(c echo.Context) error {
 	authUser := model.AuthUser{}
 	if err := (&echo.DefaultBinder{}).BindBody(c, &authUser); err != nil {
@@ -24,7 +33,16 @@ func (h *Handler) Registration(c echo.Context) error {
 	return c.String(http.StatusOK, "successfully.")
 }
 
-// Authentication method checks user password and if it ok returns access and refresh tokens
+// Authentication godoc
+// @Summary Authentication
+// @Description Authentication method checks user password and if it ok returns access and refresh tokens
+// @Tags orders
+// @Accept json
+// @Produce json
+// @Param input body model.AuthUser true "email & password"
+// @Success 200 {object} string
+// @Failure 500 {object} HTTPError
+// @Router authentication/ [post]
 func (h *Handler) Authentication(c echo.Context) error {
 	authUser := struct {
 		Email    string
@@ -49,7 +67,17 @@ func (h *Handler) Authentication(c echo.Context) error {
 	)
 }
 
-// RefreshToken method checks refresh token for validity and if it ok returns new token pair
+// RefreshToken godoc
+// @Summary Logout
+// @Description RefreshToken method checks refresh token for validity and if it ok returns new token pair
+// @Tags orders
+// @Accept json
+// @Produce json
+// @Param q query string true "refresh token"
+// @Success 200 {object} string
+// @Failure 400 {object} HTTPError
+// @Failure 500 {object} HTTPError
+// @Router logout/ [get]
 func (h *Handler) RefreshToken(c echo.Context) error {
 	refreshTokenString := c.QueryParam("refreshToken")
 	if refreshTokenString == "" {
@@ -71,7 +99,17 @@ func (h *Handler) RefreshToken(c echo.Context) error {
 	)
 }
 
-// Logout method delete user refresh token from database
+// Logout godoc
+// @Summary Logout
+// @Description Logout method delete user refresh token from database
+// @Tags orders
+// @Accept json
+// @Produce json
+// @Param q query string true "email"
+// @Success 200 {object} string
+// @Failure 400 {object} HTTPError
+// @Failure 500 {object} HTTPError
+// @Router logout/ [post]
 func (h *Handler) Logout(c echo.Context) error {
 	email := c.QueryParam("email")
 	if email == "" {

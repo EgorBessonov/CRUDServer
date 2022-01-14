@@ -8,17 +8,28 @@ import (
 	"CRUDServer/internal/service"
 	"context"
 	"fmt"
-	"github.com/go-redis/redis"
 
 	"github.com/caarlos0/env"
+	"github.com/go-redis/redis"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	log "github.com/sirupsen/logrus"
+	"github.com/swaggo/echo-swagger"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+// @title CRUDServer
+// @version 1.0
+//description This is a simple crud server for mongo & postgres databases with jwt authentication
+
+// @host localhost:8081
+// @BasePath /
+
+//securityDefinition.apikey ApiKeyAuth
+// @in header
+// @Authentication
 func main() {
 	cfg := configs.Config{}
 	if err := env.Parse(&cfg); err != nil {
@@ -28,7 +39,12 @@ func main() {
 
 	repo := dbConnection(cfg)
 	redisClient := redisConnection(cfg)
-	defer redisClient.Close()
+	defer func() {
+		err := redisClient.Close()
+		if err != nil {
+			log.Errorf("error while closing redis connection - %e", err)
+		}
+	}()
 	c := cache.NewCache(redisClient.Context(), cfg, redisClient)
 	s := service.NewService(repo, c)
 	h := handler.NewHandler(s, &cfg)
@@ -44,14 +60,15 @@ func main() {
 	g.DELETE("/deleteOrder/", h.DeleteOrderByID)
 	g.GET("/getOrder/", h.GetOrderByID)
 
-	e.POST("registration/", h.Registration)
-	e.POST("authentication/", h.Authentication)
-	e.GET("refreshToken/", h.RefreshToken)
-	e.POST("logout/", h.Logout)
+	e.POST("/registration/", h.Registration)
+	e.POST("/authentication/", h.Authentication)
+	e.GET("/refreshToken/", h.RefreshToken)
+	e.POST("/logout/", h.Logout)
 
-	e.GET("images/downloadImage", h.DownloadImage)
-	e.POST("images/uploadImage", h.UploadImage)
+	e.GET("/images/downloadImage", h.DownloadImage)
+	e.POST("/images/uploadImage", h.UploadImage)
 
+	e.GET("/swagger/*", echoSwagger.WrapHandler)
 	e.Logger.Fatal(e.Start(":8081"))
 }
 

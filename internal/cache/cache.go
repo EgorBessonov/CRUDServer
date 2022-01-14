@@ -64,10 +64,11 @@ func NewCache(ctx context.Context, cfg configs.Config, rCli *redis.Client) *Orde
 }
 
 // Get method return order instance from cache
-func (orderCache *OrderCache) Get(orderID string) *model.Order {
+func (orderCache *OrderCache) Get(orderID string) (*model.Order, bool) {
 	orderCache.mutex.Lock()
 	defer orderCache.mutex.Unlock()
-	return orderCache.orders[orderID]
+	order, found := orderCache.orders[orderID]
+	return order, found
 }
 
 //Save method send message to redis stream for saving order

@@ -6,12 +6,9 @@ import (
 	"CRUDServer/internal/model"
 	"CRUDServer/internal/service"
 	"fmt"
-	"io"
-	"net/http"
-	"os"
-
 	"github.com/labstack/echo/v4"
 	log "github.com/sirupsen/logrus"
+	"net/http"
 )
 
 // Handler type replies for handling echo server requests
@@ -91,27 +88,12 @@ func (h *Handler) UploadImage(c echo.Context) error {
 	imageFile, err := c.FormFile("image")
 	if err != nil {
 		log.Errorf("handler: can't upload image - %e", err)
-		return echo.NewHTTPError(http.StatusInternalServerError, "operation failed.")
+		return echo.NewHTTPError(http.StatusInternalServerError, "image uploading failed.")
 	}
-	imageSrc, err := imageFile.Open()
+	err = h.s.UploadImage(imageFile)
 	if err != nil {
 		log.Errorf("handler: can't upload image - %e", err)
-		return echo.NewHTTPError(http.StatusInternalServerError, "operation failed.")
-	}
-	defer func() {
-		err = imageSrc.Close()
-		if err != nil {
-			log.Error()
-		}
-	}()
-	dst, err := os.Create(imageFile.Filename)
-	if err != nil {
-		log.Errorf("handler: can't upload image - %e", err)
-		return echo.NewHTTPError(http.StatusInternalServerError, "operation failed.")
-	}
-	if _, err = io.Copy(dst, imageSrc); err != nil {
-		log.Errorf("handler: can't upload image - %e", err)
-		return echo.NewHTTPError(http.StatusInternalServerError, "operation failed.")
+		return echo.NewHTTPError(http.StatusInternalServerError, "image uploading failed.")
 	}
 	return c.String(http.StatusOK, fmt.Sprintln("successfully uploaded."))
 }
@@ -123,5 +105,5 @@ func (h *Handler) DownloadImage(c echo.Context) error {
 		log.Errorf("handler: can't download image - empty value")
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintln("invalid image name."))
 	}
-	return c.File(imageName)
+	return c.File("images/" + imageName)
 }

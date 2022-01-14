@@ -33,12 +33,12 @@ func (h *Handler) SaveOrder(c echo.Context) error {
 		log.Error(fmt.Errorf("handler: can't save order - %w", err))
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error while saving"))
 	}
-	err := h.s.Save(c.Request().Context(), &order)
+	orderID, err := h.s.Save(c.Request().Context(), &order)
 	if err != nil {
 		log.Error(fmt.Errorf("handler: can't save order - %w", err))
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error while saving"))
 	}
-	return c.String(http.StatusOK, fmt.Sprintln("successfully added"))
+	return c.String(http.StatusOK, fmt.Sprintln(orderID))
 }
 
 // GetOrderByID is echo handler(GET) which returns json structure of User object
@@ -68,7 +68,7 @@ func (h *Handler) DeleteOrderByID(c echo.Context) error {
 		log.Error(fmt.Errorf("handler: can't delete order - %w", err))
 		return echo.NewHTTPError(http.StatusInternalServerError, "error while deleting")
 	}
-	return c.String(http.StatusOK, fmt.Sprintln("successfully updated."))
+	return c.String(http.StatusOK, fmt.Sprintln("successfully deleted."))
 }
 
 // UpdateOrderByID is echo handler(PUT) which return updating status

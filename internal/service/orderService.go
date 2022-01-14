@@ -9,15 +9,15 @@ import (
 )
 
 // Save function method generate order uuid and after that save instance in cache and repository
-func (s Service) Save(ctx context.Context, order *model.Order) error {
+func (s Service) Save(ctx context.Context, order *model.Order) (string, error) {
 	order.OrderID = uuid.New().String()
 	if err := s.orderCache.Save(order); err != nil {
-		return fmt.Errorf("service: can't create order - %w", err)
+		return "", fmt.Errorf("service: can't create order - %w", err)
 	}
 	if err := s.rps.Save(ctx, order); err != nil {
-		return fmt.Errorf("service: can't create order - %w", err)
+		return "", fmt.Errorf("service: can't create order - %w", err)
 	}
-	return nil
+	return order.OrderID, nil
 }
 
 // Get method look through cache for order and if order wasn't found, method get it from repository and add it in cache

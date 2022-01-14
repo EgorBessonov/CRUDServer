@@ -8,10 +8,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"sync"
-	
+
 	"github.com/go-redis/redis"
 	log "github.com/sirupsen/logrus"
-	
 )
 
 // OrderCache type represents cache object structure and behavior
@@ -83,7 +82,7 @@ func (orderCache *OrderCache) Update(order *model.Order) error {
 
 // Delete method send message to redis stream for removing order
 func (orderCache *OrderCache) Delete(orderID string) error {
-	return orderCache.sendMessageToStream("delete", orderID)
+	return orderCache.sendMessageToStream("delete", &model.Order{OrderID: orderID})
 }
 
 func (orderCache *OrderCache) sendMessageToStream(method string, data interface{}) error {

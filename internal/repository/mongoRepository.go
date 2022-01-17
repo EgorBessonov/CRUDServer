@@ -1,9 +1,9 @@
 package repository
 
 import (
-	"CRUDServer/internal/model"
 	"context"
 	"fmt"
+	"github.com/EgorBessonov/CRUDServer/internal/model"
 	"time"
 
 	"github.com/google/uuid"

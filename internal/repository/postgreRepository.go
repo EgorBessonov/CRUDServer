@@ -1,12 +1,12 @@
 package repository
 
 import (
-	"CRUDServer/internal/model"
 	"context"
 	"fmt"
+	"github.com/EgorBessonov/CRUDServer/internal/model"
 
-	log "github.com/sirupsen/logrus"
 	"github.com/jackc/pgx/v4/pgxpool"
+	log "github.com/sirupsen/logrus"
 )
 
 // PostgresRepository type replies for accessing to postgres database

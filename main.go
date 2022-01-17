@@ -1,14 +1,15 @@
 package main
 
 import (
-	"CRUDServer/internal/cache"
-	"CRUDServer/internal/config"
-	"CRUDServer/internal/handler"
-	"CRUDServer/internal/repository"
-	"CRUDServer/internal/service"
 	"context"
 	"fmt"
+	"github.com/EgorBessonov/CRUDServer/internal/cache"
+	"github.com/EgorBessonov/CRUDServer/internal/config"
+	"github.com/EgorBessonov/CRUDServer/internal/handler"
+	"github.com/EgorBessonov/CRUDServer/internal/repository"
+	"github.com/EgorBessonov/CRUDServer/internal/service"
 
+	_ "github.com/EgorBessonov/CRUDServer/docs"
 	"github.com/caarlos0/env"
 	"github.com/go-redis/redis"
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -55,15 +56,15 @@ func main() {
 	}
 	g.Use(middleware.JWTWithConfig(config))
 
-	g.POST("/saveOrder/", h.SaveOrder)
-	g.PUT("/updateOrder/", h.UpdateOrderByID)
-	g.DELETE("/deleteOrder/", h.DeleteOrderByID)
-	g.GET("/getOrder/", h.GetOrderByID)
+	g.POST("/saveOrder", h.SaveOrder)
+	g.PUT("/updateOrder", h.UpdateOrderByID)
+	g.DELETE("/deleteOrder", h.DeleteOrderByID)
+	g.GET("/getOrder", h.GetOrderByID)
 
-	e.POST("/registration/", h.Registration)
-	e.POST("/authentication/", h.Authentication)
-	e.GET("/refreshToken/", h.RefreshToken)
-	e.POST("/logout/", h.Logout)
+	e.POST("/registration", h.Registration)
+	e.POST("/authentication", h.Authentication)
+	e.GET("/refreshToken", h.RefreshToken)
+	e.POST("/logout", h.Logout)
 
 	e.GET("/images/downloadImage", h.DownloadImage)
 	e.POST("/images/uploadImage", h.UploadImage)

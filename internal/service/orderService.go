@@ -1,9 +1,9 @@
 package service
 
 import (
-	"CRUDServer/internal/model"
 	"context"
 	"fmt"
+	"github.com/EgorBessonov/CRUDServer/internal/model"
 
 	"github.com/google/uuid"
 )

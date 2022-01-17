@@ -2,11 +2,11 @@
 package cache
 
 import (
-	configs "CRUDServer/internal/config"
-	"CRUDServer/internal/model"
 	"context"
 	"encoding/json"
 	"fmt"
+	configs "github.com/EgorBessonov/CRUDServer/internal/config"
+	"github.com/EgorBessonov/CRUDServer/internal/model"
 	"sync"
 
 	"github.com/go-redis/redis"

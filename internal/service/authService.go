@@ -2,13 +2,13 @@
 package service
 
 import (
-	"CRUDServer/internal/cache"
-	"CRUDServer/internal/model"
-	"CRUDServer/internal/repository"
 	"context"
 	"crypto/sha256"
 	"encoding/base64"
 	"fmt"
+	"github.com/EgorBessonov/CRUDServer/internal/cache"
+	"github.com/EgorBessonov/CRUDServer/internal/model"
+	"github.com/EgorBessonov/CRUDServer/internal/repository"
 	"os"
 	"time"
 
@@ -20,6 +20,7 @@ type Service struct {
 	rps        repository.Repository
 	orderCache *cache.OrderCache
 }
+
 // NewService method returns new Service instance
 func NewService(_rps repository.Repository, _orderCache *cache.OrderCache) *Service {
 	return &Service{rps: _rps, orderCache: _orderCache}

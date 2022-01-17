@@ -2,8 +2,8 @@
 package repository
 
 import (
-	"CRUDServer/internal/model"
 	"context"
+	"github.com/EgorBessonov/CRUDServer/internal/model"
 )
 
 // Repository interface represent repository behavior

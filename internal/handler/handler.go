@@ -2,10 +2,10 @@
 package handler
 
 import (
-	configs "CRUDServer/internal/config"
-	"CRUDServer/internal/model"
-	"CRUDServer/internal/service"
 	"fmt"
+	configs "github.com/EgorBessonov/CRUDServer/internal/config"
+	"github.com/EgorBessonov/CRUDServer/internal/model"
+	"github.com/EgorBessonov/CRUDServer/internal/service"
 	"github.com/labstack/echo/v4"
 	log "github.com/sirupsen/logrus"
 	"net/http"
@@ -24,16 +24,7 @@ func NewHandler(s *service.Service, cfg *configs.Config) *Handler {
 }
 
 // SaveOrder godoc
-// @Summary SaveOrder is echo handler(POST) which return orderID
-// @Description save order instance
-// @Tags orders
-// @Accept json
-// @Produce json
-// @Param input body model.Order true "order instance"
-// @Success 200 {string}
-// @Failure 500 {object} echo.HTTPError
-// @Router orders/SaveOrder [post]
-// @Security ApiKeyAuth
+//  SaveOrder is echo handler(POST) which return orderID
 func (h *Handler) SaveOrder(c echo.Context) error {
 	order := model.Order{}
 	if err := (&echo.DefaultBinder{}).BindBody(c, &order); err != nil {
@@ -53,16 +44,8 @@ func (h *Handler) SaveOrder(c echo.Context) error {
 }
 
 // GetOrderByID godoc
-// @Summary GetOrderByID
-// @Description GetOrderByID is echo handler(GET) which returns json structure of User object
-// @Tags orders
-// @Accept json
-// @Produce json
-// @Param q query string true "orderID"
-// @Success 200 {object} model.Order
-// @Failure 500 {object} echo.HTTPError
-// @Router orders/GetOrderByID [get]
-// @Security ApiKeyAuth
+// GetOrderByID is echo handler(GET) which returns json structure of User object
+
 func (h *Handler) GetOrderByID(c echo.Context) error {
 	orderID := c.QueryParam("orderID")
 	order, err := h.s.Get(c.Request().Context(), orderID)
@@ -70,6 +53,7 @@ func (h *Handler) GetOrderByID(c echo.Context) error {
 		log.Error(fmt.Errorf("handler: can't get order - %w", err))
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintln("get operation failed"))
 	}
+
 	return c.JSONBlob(
 		http.StatusOK,
 		[]byte(
@@ -82,16 +66,7 @@ func (h *Handler) GetOrderByID(c echo.Context) error {
 }
 
 // DeleteOrderByID godoc
-// @Summary DeleteOrderByID
-// @Description DeleteOrderByID is echo handler(DELETE) which return deletion status
-// @Tags orders
-// @Accept json
-// @Produce json
-// @Param q query string true "orderID"
-// @Success 200 {string}
-// @Failure 500 {object} echo.HTTPError
-// @Router orders/DeleteOrder [post]
-// @Security ApiKeyAuth
+//  DeleteOrderByID is echo handler(DELETE) which return deletion status
 func (h *Handler) DeleteOrderByID(c echo.Context) error {
 	orderID := c.QueryParam("orderID")
 	err := h.s.Delete(c.Request().Context(), orderID)
@@ -103,16 +78,8 @@ func (h *Handler) DeleteOrderByID(c echo.Context) error {
 }
 
 // UpdateOrderByID godoc
-// @Summary UpdateOrderByID
-// @Description UpdateOrderByID is echo handler(PUT) which return updating status
-// @Tags orders
-// @Accept json
-// @Produce json
-// @Param input body model.Order true "order instance"
-// @Success 200 {string}
-// @Failure 500 {object} echo.HTTPError
-// @Router orders/DeleteOrder [post]
-// @Security ApiKeyAuth
+//  UpdateOrderByID is echo handler(PUT) which return updating status
+
 func (h *Handler) UpdateOrderByID(c echo.Context) error {
 	order := model.Order{}
 	if err := (&echo.DefaultBinder{}).BindBody(c, &order); err != nil {
@@ -128,15 +95,7 @@ func (h *Handler) UpdateOrderByID(c echo.Context) error {
 }
 
 // UploadImage godoc
-// @Summary UploadImage
-// @Description UploadImage is echo handler(POST) for uploading user images from server
-// @Tags images
-// @Accept json
-// @Produce json
-// @Param input body file true "image file"
-// @Success 200 {string}
-// @Failure 500 {object} echo.HTTPError
-// @Router images/uploadImage [post]
+// Description UploadImage is echo handler(POST) for uploading user images from server
 func (h *Handler) UploadImage(c echo.Context) error {
 	imageFile, err := c.FormFile("image")
 	if err != nil {
@@ -152,15 +111,8 @@ func (h *Handler) UploadImage(c echo.Context) error {
 }
 
 // DownloadImage godoc
-// @Summary DownloadImage
-// @Description DownloadImage is echo handler(GET) for downloading user images
-// @Tags images
-// @Accept json
-// @Produce json
-// @Param q query string true "image file name"
-// @Success 200 {string}
-// @Failure 500 {object} echo.HTTPError
-// @Router images/downloadImage [get]
+
+// DownloadImage is echo handler(GET) for downloading user images
 func (h *Handler) DownloadImage(c echo.Context) error {
 	imageName := c.QueryParam("imageName")
 	if imageName == "" {

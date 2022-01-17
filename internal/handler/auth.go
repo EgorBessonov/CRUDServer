@@ -1,8 +1,8 @@
 package handler
 
 import (
-	"CRUDServer/internal/model"
 	"fmt"
+	"github.com/EgorBessonov/CRUDServer/internal/model"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -15,10 +15,10 @@ import (
 // @Tags auth
 // @Accept json
 // @Produce json
-// @Param input body model.AuthUser true "auth user instance"
-// @Success 200 {object} string
+// @Param model.Order body model.AuthUser true "auth user instance"
+// @Success 200 {string} string
 // @Failure 500 {object} echo.HTTPError
-// @Router registration/ [post]
+// @Router /registration [post]
 func (h *Handler) Registration(c echo.Context) error {
 	authUser := model.AuthUser{}
 	if err := (&echo.DefaultBinder{}).BindBody(c, &authUser); err != nil {
@@ -34,15 +34,8 @@ func (h *Handler) Registration(c echo.Context) error {
 }
 
 // Authentication godoc
-// @Summary Authentication
-// @Description Authentication method checks user password and if it ok returns access and refresh tokens
-// @Tags orders
-// @Accept json
-// @Produce json
-// @Param input body model.AuthUser true "email & password"
-// @Success 200 {object} string
-// @Failure 500 {object} HTTPError
-// @Router authentication/ [post]
+// Authentication method checks user password and if it ok returns access and refresh tokens
+
 func (h *Handler) Authentication(c echo.Context) error {
 	authUser := struct {
 		Email    string
@@ -68,16 +61,7 @@ func (h *Handler) Authentication(c echo.Context) error {
 }
 
 // RefreshToken godoc
-// @Summary Logout
-// @Description RefreshToken method checks refresh token for validity and if it ok returns new token pair
-// @Tags orders
-// @Accept json
-// @Produce json
-// @Param q query string true "refresh token"
-// @Success 200 {object} string
-// @Failure 400 {object} HTTPError
-// @Failure 500 {object} HTTPError
-// @Router logout/ [get]
+//  RefreshToken method checks refresh token for validity and if it ok returns new token pair
 func (h *Handler) RefreshToken(c echo.Context) error {
 	refreshTokenString := c.QueryParam("refreshToken")
 	if refreshTokenString == "" {
@@ -100,16 +84,7 @@ func (h *Handler) RefreshToken(c echo.Context) error {
 }
 
 // Logout godoc
-// @Summary Logout
 // @Description Logout method delete user refresh token from database
-// @Tags orders
-// @Accept json
-// @Produce json
-// @Param q query string true "email"
-// @Success 200 {object} string
-// @Failure 400 {object} HTTPError
-// @Failure 500 {object} HTTPError
-// @Router logout/ [post]
 func (h *Handler) Logout(c echo.Context) error {
 	email := c.QueryParam("email")
 	if email == "" {

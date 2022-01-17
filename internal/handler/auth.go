@@ -15,7 +15,7 @@ import (
 // @Tags auth
 // @Accept json
 // @Produce json
-// @Param model.Order body model.AuthUser true "auth user instance"
+// @Param authUser body model.AuthUser true "auth user instance"
 // @Success 200 {string} string
 // @Failure 500 {object} echo.HTTPError
 // @Router /registration [post]
@@ -34,8 +34,15 @@ func (h *Handler) Registration(c echo.Context) error {
 }
 
 // Authentication godoc
-// Authentication method checks user password and if it ok returns access and refresh tokens
-
+// @Summary Authentication
+// @Description Authentication method checks user password and if it ok returns access and refresh tokens
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param "email & password" body model.AuthUser true "user password & email"
+// @Success 200 {string} string
+// @Failure 500 {object} echo.HTTPError
+// @Router /authentication [post]
 func (h *Handler) Authentication(c echo.Context) error {
 	authUser := struct {
 		Email    string
@@ -61,7 +68,16 @@ func (h *Handler) Authentication(c echo.Context) error {
 }
 
 // RefreshToken godoc
-//  RefreshToken method checks refresh token for validity and if it ok returns new token pair
+// @Summary RefreshToken
+// @Description RefreshToken method checks refresh token for validity and if it ok returns new token pair
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param refreshToken query string true "refresh token string"
+// @Success 200 {string} string
+// @Failure 400 {object} echo.HTTPError
+// @Failure 500 {object} echo.HTTPError
+// @Router /refreshToken{refreshToken} [get]
 func (h *Handler) RefreshToken(c echo.Context) error {
 	refreshTokenString := c.QueryParam("refreshToken")
 	if refreshTokenString == "" {
@@ -85,6 +101,17 @@ func (h *Handler) RefreshToken(c echo.Context) error {
 
 // Logout godoc
 // @Description Logout method delete user refresh token from database
+// Registration godoc
+// @Summary Registration
+// @Description Logout method delete user refresh token from database
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param email query string true "email"
+// @Success 200 {string} string
+// @Failure 400 {object} echo.HTTPError
+// @Failure 500 {object} echo.HTTPError
+// @Router /logout{email} [delete]
 func (h *Handler) Logout(c echo.Context) error {
 	email := c.QueryParam("email")
 	if email == "" {

@@ -24,7 +24,16 @@ func NewHandler(s *service.Service, cfg *configs.Config) *Handler {
 }
 
 // SaveOrder godoc
-//  SaveOrder is echo handler(POST) which return orderID
+// @Summary SaveOrder
+// @Description SaveOrder is echo handler(POST) which return orderID
+// @Tags orders
+// @Accept json
+// @Produce json
+// @Param order body model.Order true "order instance"
+// @Success 200 {string} string
+// @Failure 500 {object} echo.HTTPError
+// @Router /saveOrder [post]
+// @Security ApiKeyAuth
 func (h *Handler) SaveOrder(c echo.Context) error {
 	order := model.Order{}
 	if err := (&echo.DefaultBinder{}).BindBody(c, &order); err != nil {
@@ -44,8 +53,16 @@ func (h *Handler) SaveOrder(c echo.Context) error {
 }
 
 // GetOrderByID godoc
-// GetOrderByID is echo handler(GET) which returns json structure of User object
-
+// @Summary GetOrderByID
+// @Description GetOrderByID is echo handler(GET) which returns json structure of User object
+// @Tags orders
+// @Accept json
+// @Produce json
+// @Param orderID query string true "orderID"
+// @Success 200 {string} string
+// @Failure 500 {object} echo.HTTPError
+// @Router /getOrder{orderID} [get]
+// @Security ApiKeyAuth
 func (h *Handler) GetOrderByID(c echo.Context) error {
 	orderID := c.QueryParam("orderID")
 	order, err := h.s.Get(c.Request().Context(), orderID)
@@ -66,7 +83,16 @@ func (h *Handler) GetOrderByID(c echo.Context) error {
 }
 
 // DeleteOrderByID godoc
-//  DeleteOrderByID is echo handler(DELETE) which return deletion status
+// @Summary DeleteOrderByID
+// @Description DeleteOrderByID is echo handler(DELETE)
+// @Tags orders
+// @Accept json
+// @Produce json
+// @Param orderID query string true "orderID"
+// @Success 200 {string} string
+// @Failure 500 {object} echo.HTTPError
+// @Router /deleteOrder{orderID} [delete]
+// @Security ApiKeyAuth
 func (h *Handler) DeleteOrderByID(c echo.Context) error {
 	orderID := c.QueryParam("orderID")
 	err := h.s.Delete(c.Request().Context(), orderID)
@@ -78,8 +104,16 @@ func (h *Handler) DeleteOrderByID(c echo.Context) error {
 }
 
 // UpdateOrderByID godoc
-//  UpdateOrderByID is echo handler(PUT) which return updating status
-
+// @Summary UpdateOrderByID
+// @Description UpdateOrderByID is echo handler(PUT) which return updating status
+// @Tags orders
+// @Accept json
+// @Produce json
+// @Param order body model.Order true "order instance"
+// @Success 200 {string} string
+// @Failure 500 {object} echo.HTTPError
+// @Router /updateOrder [put]
+// @Security ApiKeyAuth
 func (h *Handler) UpdateOrderByID(c echo.Context) error {
 	order := model.Order{}
 	if err := (&echo.DefaultBinder{}).BindBody(c, &order); err != nil {
@@ -95,7 +129,15 @@ func (h *Handler) UpdateOrderByID(c echo.Context) error {
 }
 
 // UploadImage godoc
-// Description UploadImage is echo handler(POST) for uploading user images from server
+// @Summary UploadImage
+// @Description UploadImage is echo handler(POST) for uploading user images from server
+// @Tags images
+// @Accept json
+// @Produce json
+// @Param image body string true "image"
+// @Success 200 {string} string
+// @Failure 500 {object} echo.HTTPError
+// @Router /uploadImage [post]
 func (h *Handler) UploadImage(c echo.Context) error {
 	imageFile, err := c.FormFile("image")
 	if err != nil {
@@ -111,8 +153,15 @@ func (h *Handler) UploadImage(c echo.Context) error {
 }
 
 // DownloadImage godoc
-
-// DownloadImage is echo handler(GET) for downloading user images
+// @Summary DownloadImage
+// @Description DownloadImage is echo handler(GET) for downloading user images
+// @Tags images
+// @Accept json
+// @Produce json
+// @Param imageName query string true "image name"
+// @Success 200 {string} string
+// @Failure 500 {object} echo.HTTPError
+// @Router /downloadImage{imageName} [get]
 func (h *Handler) DownloadImage(c echo.Context) error {
 	imageName := c.QueryParam("imageName")
 	if imageName == "" {
